@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.polyswarm.swarmit;
+package io.polyswarm.swarmit.optionspanel;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,20 +11,20 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.NbPreferences;
 
 final class SwarmItPanel extends javax.swing.JPanel {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(SwarmItPanel.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SwarmItPanel.class.getName());
     private final SwarmItOptionsPanelController controller;
+    private final SwarmItMarketplaceSettings settings;
 
-    
     private ConnectionTestResult connectionTestStatus;
     
     SwarmItPanel(SwarmItOptionsPanelController controller) {
         this.controller = controller;
-        
+        this.settings = new SwarmItMarketplaceSettings();
+
         initComponents();
         customizeComponents();
     }
@@ -225,33 +225,32 @@ final class SwarmItPanel extends javax.swing.JPanel {
         // run test..
         // set             connectionTestStatus = ConnectionTestResult.TESTEDOK;
         // or set             connectionTestStatus = ConnectionTestResult.CONNECTION_FAILED;
-        // for testing, i'll set it to TESTEDOK
-        connectionTestStatus = ConnectionTestResult.TESTEDOK;
+        //
+        // set here for testing purposes..
+        connectionTestStatus = ConnectionTestResult.CONNECTION_FAILED;
+        //
         if (connectionTestStatus == ConnectionTestResult.TESTEDOK) {
-            testConnectionStatusLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.testConnectionStatusSuccessLabel.text"));
+            testConnectionStatusLabel.setText(Bundle.SwarmItPanel_testConnectionStatusSuccessLabel_text());
             testConnectionStatusLabel.setForeground(new java.awt.Color(0, 0, 0));
         } else {
-            testConnectionStatusLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.testConnectionStatusFailedLabel.text"));
+            testConnectionStatusLabel.setText(Bundle.SwarmItPanel_testConnectionStatusFailedLabel_text());
             testConnectionStatusLabel.setForeground(new java.awt.Color(255, 0, 0));
         }
+        controller.changed();
     }//GEN-LAST:event_testButtonActionPerformed
 
     private void customizeComponents() {
         // read settings and initialize GUI
-        psJsonTextArea.setText(NbPreferences.forModule(SwarmItPanel.class).get(
-                "psJson", 
-                "{'api_key': '', 'eth_json': '' }"));
-        urlTextField.setText(NbPreferences.forModule(SwarmItPanel.class).get(
-                "psApiUrl", 
-                NbBundle.getMessage(this.getClass(), "SwarmItPanel.urlTextField.text")));
-        defaultNctAmountTextField.setText(NbPreferences.forModule(SwarmItPanel.class).get(
-                "psNCTAmount", 
-                NbBundle.getMessage(this.getClass(), "SwarmItPanel.defaultNctAmountTextField.text")));
+        psJsonTextArea.setText(settings.getJson());
+        urlTextField.setText(settings.getUrl());
+        defaultNctAmountTextField.setText(settings.getNctAmountString());
 
         // listen to changes in form fields and call controller.changed()
         psJsonTextArea.getDocument().addDocumentListener(new MyDocumentListener());
         urlTextField.getDocument().addDocumentListener(new MyDocumentListener());
         defaultNctAmountTextField.getDocument().addDocumentListener(new MyDocumentListener());
+
+        connectionTestStatus = ConnectionTestResult.UNTESTED;
 
     }
 
@@ -265,83 +264,93 @@ final class SwarmItPanel extends javax.swing.JPanel {
 
     void load() {
         clearErrorMessages();
+        valid();
     }
 
     void store() {
         // store modified settings
-        NbPreferences.forModule(this.getClass()).put("psJson", psJsonTextArea.getText());
-        NbPreferences.forModule(this.getClass()).put("psApiUrl", urlTextField.getText());
-        NbPreferences.forModule(this.getClass()).put("psNCTAmount", defaultNctAmountTextField.getText());
+        settings.saveSettings();
     }
 
+    boolean testedOk() {
+        return connectionTestStatus == ConnectionTestResult.TESTEDOK;
+    }
+
+    @Messages({"SwarmItPanel.testConnectionStatusUntestedLabel.text=Click Test Connection button to verify connectivity."})
     boolean enableTestButton(boolean enable) {
         testButton.setEnabled(enable);
+
+        if (enable && connectionTestStatus == ConnectionTestResult.UNTESTED) {
+            testConnectionStatusLabel.setText(Bundle.SwarmItPanel_testConnectionStatusUntestedLabel_text());
+            testConnectionStatusLabel.setForeground(new java.awt.Color(255, 0, 0));
+        }
         return true;
     }
 
+    /**
+     * Validate the JSON blob. Set error message if invalid.
+     * 
+     * @return true if valid, else false
+     */
     boolean validJson() {
-        // Validate the JSON blob
-        // TODO: do something more than check for emtpy string; like verify
-        //  - it can be parsed as JSON
-        //  - it has valid api_key
-        //  - it has valid eth json
-
-        if (psJsonTextArea.getText().isEmpty()) {
+        boolean isValid = settings.setJson(psJsonTextArea.getText());
+        if (isValid == false) {
             psJsonErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.psJsonErrorMsgLabel.text"));
-            return false;
         }
 
-        return true;
+        return isValid;
     }
 
+    /**
+     * Validate the URL
+     * 
+     * @return true if valid, else false
+     */
     boolean validURL() {
-        // Validate the URL
-        // For now - make sure it's not empty and it starts with 'http'.
-        String url = urlTextField.getText();
-        
-        if (url.isEmpty() || !url.startsWith("http")) {
+        boolean isValid = settings.setUrl(urlTextField.getText());
+        if (isValid == false) {
             urlErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.urlErrorMsgLabel.text"));
-            return false;
         }
         
-        return true;
+        return isValid;
     }
     
+    /**
+     * Validate the NCT amount is a positive decimal number.
+     * 
+     * @return true if valid, else false
+     */
+    @Messages({"SwarmItPanel.nctAmountErrorMsgNFE.text=NCT Amount is invalid. Must be a number greater than 0.0."})
     boolean validNCTAmount() {
-        // Validate the NCT amount is a positive decimal number.
-        try {
-            double d = Double.parseDouble(defaultNctAmountTextField.getText());
-            if (d <= 0.0) {
-                nctAmountErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.nctAmountErrorMsgLabel.text"));
-                logger.log(Level.WARNING, "NCT Amount is invalid. Must be greater than 0.0.");
-                return false;
-            }
-        } catch (NumberFormatException nfe) {
-            nctAmountErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.nctAmountErrorMsgLabel.text"));
-            logger.log(Level.WARNING, "NCT Amount is invalid. Must be greater than 0.0.");
-            return false;
+        boolean isValid = settings.setNctAmount(defaultNctAmountTextField.getText());
+        if (isValid == false) {
+            nctAmountErrorMsgLabel.setText(Bundle.SwarmItPanel_nctAmountErrorMsgNFE_text());
+            LOGGER.log(Level.WARNING, "NCT Amount is invalid. Must be greater than 0.0.");
         }
-        return true;
+        return isValid;
     }
 
+    /**
+     * Validate the fields are completed correctly and that a connection test
+     * was successful.
+     * 
+     * @return true if all valid and successful test, else false
+     */
     boolean valid() {
         // check whether form data is complete and has valid content
-        // check each element so we get error reports for all invalid fields.
+        // check each element so we get error nofications for all invalid fields.
         boolean result = true;
+
         result &= validJson();
         result &= validURL();
         result &= validNCTAmount();
+        
+        // if fields are populated correctly, enable the test button
+        enableTestButton(result);
+        
+        // the form is only valid after a successful test
+        result &= testedOk();
         return result;
-    }
-
-    void validateSettings() {
-        clearErrorMessages();
-
-        if (valid()) {
-            enableTestButton(true);
-        } else {
-            enableTestButton(false);
-        }
     }
 
     /**
@@ -353,20 +362,23 @@ final class SwarmItPanel extends javax.swing.JPanel {
         @Override
         public void changedUpdate(DocumentEvent e) {
             // Plain text components do not fire these events
-            validateSettings();
+            clearErrorMessages();
             connectionTestStatus = ConnectionTestResult.UNTESTED;
+            controller.changed();
         }
 
         @Override
         public void insertUpdate(DocumentEvent e) {
-            validateSettings();
+            clearErrorMessages();
             connectionTestStatus = ConnectionTestResult.UNTESTED;
+            controller.changed();
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
-            validateSettings();
+            clearErrorMessages();
             connectionTestStatus = ConnectionTestResult.UNTESTED;
+            controller.changed();
         }
     }
 
@@ -379,7 +391,6 @@ final class SwarmItPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel apiUrlPanel;
     private javax.swing.JTextField defaultNctAmountTextField;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel nctAmountErrorMsgLabel;
     private javax.swing.JPanel nctAmountPanel;
     private javax.swing.JLabel nctAmountUnitLabel;

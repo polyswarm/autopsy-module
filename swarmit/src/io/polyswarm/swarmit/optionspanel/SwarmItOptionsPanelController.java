@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.polyswarm.swarmit;
+package io.polyswarm.swarmit.optionspanel;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -17,7 +17,7 @@ import org.openide.util.Lookup;
 @OptionsPanelController.TopLevelRegistration(
         categoryName = "#OptionsCategory_Name_SwarmIt",
         position = 25,
-        iconBase = "io/polyswarm/swarmit/polyswarm-logo-32x32.png",
+        iconBase = "io/polyswarm/swarmit/images/polyswarm-logo-32x32.png",
         keywords = "#OptionsCategory_Keywords_SwarmIt",
         keywordsCategory = "SwarmIt"
 )
@@ -27,7 +27,7 @@ public final class SwarmItOptionsPanelController extends OptionsPanelController 
     private SwarmItPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
-    private static final Logger logger = Logger.getLogger(SwarmItOptionsPanelController.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SwarmItOptionsPanelController.class.getName());
 
     @Override
     public void update() {
@@ -92,14 +92,14 @@ public final class SwarmItOptionsPanelController extends OptionsPanelController 
             try {
                 pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, false, true);
             } catch (Exception e) {
-                logger.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_CHANGED.", e);            
+                LOGGER.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_CHANGED.", e);            
             }
         }
         
         try {
             pcs.firePropertyChange(OptionsPanelController.PROP_VALID, null, null);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_VALID.", e);
+            LOGGER.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_VALID.", e);
         }
     }
 }
