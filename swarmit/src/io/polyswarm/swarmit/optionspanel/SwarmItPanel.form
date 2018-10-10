@@ -22,7 +22,7 @@
                   <Component id="apiUrlPanel" alignment="0" max="32767" attributes="0"/>
                   <Component id="nctAmountPanel" max="32767" attributes="0"/>
                   <Component id="testConnectionButtonPanel" alignment="0" min="-2" max="-2" attributes="0"/>
-                  <Component id="psJsonPanel" alignment="0" max="32767" attributes="0"/>
+                  <Component id="apiKeyPanel" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace pref="19" max="32767" attributes="0"/>
           </Group>
@@ -34,10 +34,10 @@
               <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
               <Component id="apiUrlPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="psJsonPanel" max="32767" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
+              <Component id="apiKeyPanel" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="nctAmountPanel" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
+              <EmptySpace pref="40" max="32767" attributes="0"/>
               <Component id="testConnectionButtonPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="35" max="-2" attributes="0"/>
           </Group>
@@ -49,8 +49,8 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&lt;SwarmItPanel.apiUrlTitle.text&gt;">
-              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/Bundle.properties" key="SwarmItPanel.apiUrlTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <TitledBorder title="PolySwarm API URL">
+              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiUrlTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
               <Font PropertyName="font" name="Tahoma" size="12" style="0"/>
             </TitledBorder>
           </Border>
@@ -63,8 +63,8 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="urlTextField" min="-2" pref="588" max="-2" attributes="0"/>
-                      <Component id="urlErrorMsgLabel" alignment="0" min="-2" pref="576" max="-2" attributes="0"/>
+                      <Component id="apiUrlTextField" min="-2" pref="588" max="-2" attributes="0"/>
+                      <Component id="apiUrlErrorMsgLabel" alignment="0" min="-2" pref="576" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace pref="20" max="32767" attributes="0"/>
               </Group>
@@ -74,29 +74,29 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="urlTextField" min="-2" max="-2" attributes="0"/>
+                  <Component id="apiUrlTextField" min="-2" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                  <Component id="urlErrorMsgLabel" min="-2" max="-2" attributes="0"/>
+                  <Component id="apiUrlErrorMsgLabel" min="-2" max="-2" attributes="0"/>
                   <EmptySpace pref="16" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JTextField" name="urlTextField">
+        <Component class="javax.swing.JTextField" name="apiUrlTextField">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Monospaced" size="13" style="0"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.urlTextField.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiUrlTextField.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
             <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.urlTextField.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiUrlTextField.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JLabel" name="urlErrorMsgLabel">
+        <Component class="javax.swing.JLabel" name="apiUrlErrorMsgLabel">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Tahoma" size="11" style="1"/>
@@ -105,18 +105,18 @@
               <Color blue="0" green="0" red="ff" type="rgb"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.urlErrorMsgLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiUrlErrorMsgLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
       </SubComponents>
     </Container>
-    <Container class="javax.swing.JPanel" name="psJsonPanel">
+    <Container class="javax.swing.JPanel" name="apiKeyPanel">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&lt;SwarmItPanel.psJsonTitle.text&gt;">
-              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/Bundle.properties" key="SwarmItPanel.psJsonTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <TitledBorder title="PolySwarm API KEY">
+              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiKeyTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
               <Font PropertyName="font" name="Tahoma" size="12" style="0"/>
             </TitledBorder>
           </Border>
@@ -129,11 +129,11 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
+              <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                      <Component id="psJsonTextAreaScrollPane" pref="586" max="32767" attributes="0"/>
-                      <Component id="psJsonErrorMsgLabel" max="32767" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="apiKeyTextArea" min="-2" pref="567" max="-2" attributes="0"/>
+                      <Component id="apiKeyErrorMsgLabel" alignment="0" min="-2" pref="586" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -143,38 +143,16 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="psJsonTextAreaScrollPane" pref="118" max="32767" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="psJsonErrorMsgLabel" min="-2" pref="14" max="-2" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="apiKeyTextArea" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Component id="apiKeyErrorMsgLabel" min="-2" pref="14" max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Container class="javax.swing.JScrollPane" name="psJsonTextAreaScrollPane">
-          <Properties>
-            <Property name="horizontalScrollBarPolicy" type="int" value="31"/>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Monospaced" size="13" style="0"/>
-            </Property>
-          </Properties>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-          <SubComponents>
-            <Component class="javax.swing.JTextArea" name="psJsonTextArea">
-              <Properties>
-                <Property name="columns" type="int" value="20"/>
-                <Property name="rows" type="int" value="5"/>
-                <Property name="text" type="java.lang.String" value="{&apos;api_key&apos;: &apos;&apos;, &apos;eth_json&apos;: &apos;&apos; }" noResource="true"/>
-                <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.psJsonTextArea.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-                </Property>
-              </Properties>
-            </Component>
-          </SubComponents>
-        </Container>
-        <Component class="javax.swing.JLabel" name="psJsonErrorMsgLabel">
+        <Component class="javax.swing.JLabel" name="apiKeyErrorMsgLabel">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Tahoma" size="11" style="1"/>
@@ -183,7 +161,17 @@
               <Color blue="0" green="0" red="ff" type="rgb"/>
             </Property>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.psJsonErrorMsgLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiKeyErrorMsgLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            </Property>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JTextArea" name="apiKeyTextArea">
+          <Properties>
+            <Property name="columns" type="int" value="20"/>
+            <Property name="rows" type="int" value="5"/>
+            <Property name="text" type="java.lang.String" value="ABCEDF1234567890" noResource="true"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.apiKeyTextArea.toolTipText" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
@@ -193,8 +181,8 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="&lt;SwarmItPanel.nctAmountTitle.text&gt;">
-              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/Bundle.properties" key="SwarmItPanel.nctAmountTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+            <TitledBorder title="Default NCT Payment (per artifact submission)">
+              <ResourceString PropertyName="titleX" bundle="io/polyswarm/swarmit/optionspanel/Bundle.properties" key="SwarmItPanel.nctAmountTitle.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
               <Font PropertyName="font" name="Tahoma" size="12" style="0"/>
             </TitledBorder>
           </Border>
