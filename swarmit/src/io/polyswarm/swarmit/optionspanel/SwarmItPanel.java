@@ -38,12 +38,11 @@ final class SwarmItPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         apiUrlPanel = new javax.swing.JPanel();
-        urlTextField = new javax.swing.JTextField();
-        urlErrorMsgLabel = new javax.swing.JLabel();
-        psJsonPanel = new javax.swing.JPanel();
-        psJsonTextAreaScrollPane = new javax.swing.JScrollPane();
-        psJsonTextArea = new javax.swing.JTextArea();
-        psJsonErrorMsgLabel = new javax.swing.JLabel();
+        apiUrlTextField = new javax.swing.JTextField();
+        apiUrlErrorMsgLabel = new javax.swing.JLabel();
+        apiKeyPanel = new javax.swing.JPanel();
+        apiKeyErrorMsgLabel = new javax.swing.JLabel();
+        apiKeyTextArea = new javax.swing.JTextArea();
         nctAmountPanel = new javax.swing.JPanel();
         defaultNctAmountTextField = new javax.swing.JTextField();
         nctAmountUnitLabel = new javax.swing.JLabel();
@@ -54,13 +53,13 @@ final class SwarmItPanel extends javax.swing.JPanel {
 
         apiUrlPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
 
-        urlTextField.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
-        urlTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.urlTextField.text")); // NOI18N
-        urlTextField.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.urlTextField.toolTipText")); // NOI18N
+        apiUrlTextField.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        apiUrlTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTextField.text")); // NOI18N
+        apiUrlTextField.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTextField.toolTipText")); // NOI18N
 
-        urlErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        urlErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
-        org.openide.awt.Mnemonics.setLocalizedText(urlErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.urlErrorMsgLabel.text")); // NOI18N
+        apiUrlErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        apiUrlErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
+        org.openide.awt.Mnemonics.setLocalizedText(apiUrlErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlErrorMsgLabel.text")); // NOI18N
 
         javax.swing.GroupLayout apiUrlPanelLayout = new javax.swing.GroupLayout(apiUrlPanel);
         apiUrlPanel.setLayout(apiUrlPanelLayout);
@@ -69,55 +68,51 @@ final class SwarmItPanel extends javax.swing.JPanel {
             .addGroup(apiUrlPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(urlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 588, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(urlErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 576, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(apiUrlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 588, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(apiUrlErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 576, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(20, Short.MAX_VALUE))
         );
         apiUrlPanelLayout.setVerticalGroup(
             apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(apiUrlPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(urlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(apiUrlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(urlErrorMsgLabel)
+                .addComponent(apiUrlErrorMsgLabel)
                 .addContainerGap(16, Short.MAX_VALUE))
         );
 
-        psJsonPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.psJsonTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
-        psJsonPanel.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        apiKeyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
+        apiKeyPanel.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
 
-        psJsonTextAreaScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        psJsonTextAreaScrollPane.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+        apiKeyErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        apiKeyErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
+        org.openide.awt.Mnemonics.setLocalizedText(apiKeyErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyErrorMsgLabel.text")); // NOI18N
 
-        psJsonTextArea.setColumns(20);
-        psJsonTextArea.setRows(5);
-        psJsonTextArea.setText("{'api_key': '', 'eth_json': '' }"); // NOI18N
-        psJsonTextArea.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.psJsonTextArea.toolTipText")); // NOI18N
-        psJsonTextAreaScrollPane.setViewportView(psJsonTextArea);
+        apiKeyTextArea.setColumns(20);
+        apiKeyTextArea.setRows(5);
+        apiKeyTextArea.setText("ABCEDF1234567890"); // NOI18N
+        apiKeyTextArea.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyTextArea.toolTipText")); // NOI18N
 
-        psJsonErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        psJsonErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
-        org.openide.awt.Mnemonics.setLocalizedText(psJsonErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.psJsonErrorMsgLabel.text")); // NOI18N
-
-        javax.swing.GroupLayout psJsonPanelLayout = new javax.swing.GroupLayout(psJsonPanel);
-        psJsonPanel.setLayout(psJsonPanelLayout);
-        psJsonPanelLayout.setHorizontalGroup(
-            psJsonPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(psJsonPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout apiKeyPanelLayout = new javax.swing.GroupLayout(apiKeyPanel);
+        apiKeyPanel.setLayout(apiKeyPanelLayout);
+        apiKeyPanelLayout.setHorizontalGroup(
+            apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(psJsonPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(psJsonTextAreaScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 586, Short.MAX_VALUE)
-                    .addComponent(psJsonErrorMsgLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(apiKeyTextArea, javax.swing.GroupLayout.PREFERRED_SIZE, 567, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-        psJsonPanelLayout.setVerticalGroup(
-            psJsonPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, psJsonPanelLayout.createSequentialGroup()
+        apiKeyPanelLayout.setVerticalGroup(
+            apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(psJsonTextAreaScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 118, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(psJsonErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(apiKeyTextArea, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         nctAmountPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.nctAmountTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
@@ -199,7 +194,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
                     .addComponent(apiUrlPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(nctAmountPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(psJsonPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(apiKeyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(19, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -208,10 +203,10 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addGap(30, 30, 30)
                 .addComponent(apiUrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(psJsonPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(nctAmountPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(26, 26, 26)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
                 .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(35, 35, 35))
         );
@@ -241,23 +236,28 @@ final class SwarmItPanel extends javax.swing.JPanel {
 
     private void customizeComponents() {
         // read settings and initialize GUI
-        psJsonTextArea.setText(settings.getJson());
-        urlTextField.setText(settings.getUrl());
+        apiKeyTextArea.setText(settings.getApiKey());
+        apiUrlTextField.setText(settings.getApiUrl());
         defaultNctAmountTextField.setText(settings.getNctAmountString());
 
         // listen to changes in form fields and call controller.changed()
-        psJsonTextArea.getDocument().addDocumentListener(new MyDocumentListener());
-        urlTextField.getDocument().addDocumentListener(new MyDocumentListener());
+        apiKeyTextArea.getDocument().addDocumentListener(new MyDocumentListener());
+        apiUrlTextField.getDocument().addDocumentListener(new MyDocumentListener());
         defaultNctAmountTextField.getDocument().addDocumentListener(new MyDocumentListener());
 
-        connectionTestStatus = ConnectionTestResult.UNTESTED;
+        // NOTE: We've disabled the API KEY and DEFAULT NCT AMOUNT fields,
+        // since they are not currently used.
+        // TODO: remove these next 2 lines when they are to be used.
+        apiKeyTextArea.setEditable(false);
+        defaultNctAmountTextField.setEditable(false);
 
+        connectionTestStatus = ConnectionTestResult.UNTESTED;
     }
 
     private void clearErrorMessages() {
         // clear default error msgs
-        urlErrorMsgLabel.setText("");
-        psJsonErrorMsgLabel.setText("");
+        apiUrlErrorMsgLabel.setText("");
+        apiKeyErrorMsgLabel.setText("");
         nctAmountErrorMsgLabel.setText("");
         testConnectionStatusLabel.setText("");
     }
@@ -288,14 +288,14 @@ final class SwarmItPanel extends javax.swing.JPanel {
     }
 
     /**
-     * Validate the JSON blob. Set error message if invalid.
+     * Validate the API Key. Set error message if invalid.
      * 
      * @return true if valid, else false
      */
-    boolean validJson() {
-        boolean isValid = settings.setJson(psJsonTextArea.getText());
+    boolean validApiKey() {
+        boolean isValid = settings.setApiKey(apiKeyTextArea.getText());
         if (isValid == false) {
-            psJsonErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.psJsonErrorMsgLabel.text"));
+            apiKeyErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.apiKeyErrorMsgLabel.text"));
         }
 
         return isValid;
@@ -307,9 +307,9 @@ final class SwarmItPanel extends javax.swing.JPanel {
      * @return true if valid, else false
      */
     boolean validURL() {
-        boolean isValid = settings.setUrl(urlTextField.getText());
+        boolean isValid = settings.setApiUrl(apiUrlTextField.getText());
         if (isValid == false) {
-            urlErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.urlErrorMsgLabel.text"));
+            apiUrlErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.apiUrlErrorMsgLabel.text"));
         }
         
         return isValid;
@@ -341,7 +341,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
         // check each element so we get error nofications for all invalid fields.
         boolean result = true;
 
-        result &= validJson();
+        result &= validApiKey();
         result &= validURL();
         result &= validNCTAmount();
         
@@ -389,19 +389,18 @@ final class SwarmItPanel extends javax.swing.JPanel {
     }
         
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel apiKeyErrorMsgLabel;
+    private javax.swing.JPanel apiKeyPanel;
+    private javax.swing.JTextArea apiKeyTextArea;
+    private javax.swing.JLabel apiUrlErrorMsgLabel;
     private javax.swing.JPanel apiUrlPanel;
+    private javax.swing.JTextField apiUrlTextField;
     private javax.swing.JTextField defaultNctAmountTextField;
     private javax.swing.JLabel nctAmountErrorMsgLabel;
     private javax.swing.JPanel nctAmountPanel;
     private javax.swing.JLabel nctAmountUnitLabel;
-    private javax.swing.JLabel psJsonErrorMsgLabel;
-    private javax.swing.JPanel psJsonPanel;
-    private javax.swing.JTextArea psJsonTextArea;
-    private javax.swing.JScrollPane psJsonTextAreaScrollPane;
     private javax.swing.JButton testButton;
     private javax.swing.JPanel testConnectionButtonPanel;
     private javax.swing.JLabel testConnectionStatusLabel;
-    private javax.swing.JLabel urlErrorMsgLabel;
-    private javax.swing.JTextField urlTextField;
     // End of variables declaration//GEN-END:variables
 }
