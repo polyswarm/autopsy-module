@@ -9,6 +9,7 @@ import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.datamodel.TskCoreException;
@@ -19,7 +20,7 @@ import org.sleuthkit.datamodel.TskCoreException;
  * 
  * AbstractFile ID and PolySwarm UUID are kept in sqlite db.
  * 
- * This process will check the sqlite db for new entries.
+ * This process will periodically check the sqlite db for new entries.
  * For each entry, this process will contact the PolySwarm API 
  * to get the analysis results.
  * It will then add a PolySwarm Results artifact to the AbstractFile.
@@ -45,6 +46,11 @@ public class SwarmItController {
     }
     
     public void reset() {
-        // TODO...
+        try {
+            // TODO: close all connections to the REST API.
+            dbInstance.shutdownConnections();
+        } catch (SwarmItDbException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to shutdown database connections.", ex); // NON-NLS
+        }
     }
 }

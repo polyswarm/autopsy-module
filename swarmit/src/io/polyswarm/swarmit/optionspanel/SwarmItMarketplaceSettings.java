@@ -17,7 +17,7 @@ public final class SwarmItMarketplaceSettings {
     private final static Logger LOGGER = Logger.getLogger(SwarmItMarketplaceSettings.class.getName());
     private final Double DEFAULT_NCT_AMOUNT = 0.5;
     private final String DEFAULT_API_KEY = "PLACEHOLDER0123456789ABCDEF";
-    private final String DEFAULT_URL = "https://polyswarm.io"; // NON-NLS
+    private final String DEFAULT_URL = "https://consumer.stage.polyswarm.network"; // NON-NLS
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
     private final String SETTINGS_TAG_API_URL = "polyswarm.url"; // NON-NLS
     private final String SETTINGS_TAG_API_KEY = "polyswarm.apikey"; // NON-NLS
