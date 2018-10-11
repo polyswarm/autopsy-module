@@ -31,6 +31,8 @@ public final class SwarmItDbSettings {
     private final String JDBC_DRIVER = "org.sqlite.JDBC"; // NON-NLS
     private final String JDBC_BASE_URI = "jdbc:sqlite:"; // NON-NLS
     private final String VALIDATION_QUERY = "SELECT count(*) from sqlite_master"; // NON-NLS
+    private static final Integer DB_SCHEMA_VERSION_MAJOR = 1;
+    private static final Integer DB_SCHEMA_VERSION_MINOR = 0;
     private static final String PRAGMA_SYNC_OFF = "PRAGMA synchronous = OFF"; // NON-NLS
     private static final String PRAGMA_SYNC_NORMAL = "PRAGMA synchronous = NORMAL"; // NON-NLS
     private static final String PRAGMA_JOURNAL_WAL = "PRAGMA journal_mode = WAL"; // NON-NLS
@@ -166,10 +168,8 @@ public final class SwarmItDbSettings {
             return false;
         }
         
-        boolean result = false;
-        // TODO: run validation query
-        // result = query...
-        // close connection
+        boolean result = SwarmItDbUtils.executeValidationQuery(conn, VALIDATION_QUERY);
+        SwarmItDbUtils.closeConnection(conn);
         return result;
     }
 
@@ -179,23 +179,20 @@ public final class SwarmItDbSettings {
             return false;
         }
         
-        boolean result = false;
-        // TODO: run schema verision is set query
-        // result = query...
-        // close connection
+        boolean result = SwarmItDbUtils.schemaVersionIsSet(conn);
+        SwarmItDbUtils.closeConnection(conn);
         return result;
     }
 
     private boolean initializeDatabaseSchema() {
 
-        StringBuilder createPendingLookupsTable = new StringBuilder();
-        createPendingLookupsTable.append("CREATE TABLE IF NOT EXISTS pending_lookups (");
-        createPendingLookupsTable.append("id integer primary key autoincrement NOT NULL,");
-        createPendingLookupsTable.append("file_obj_id integer NOT NULL,");
-        createPendingLookupsTable.append("txid integer NOT NULL,");
-        createPendingLookupsTable.append("status integer NOT NULL,");
-        createPendingLookupsTable.append("CONSTRAINT file_obj_id_unique UNIQUE (file_obj_id)");
-        createPendingLookupsTable.append(")");
+        StringBuilder createPendingSubmissionsTable = new StringBuilder();
+        createPendingSubmissionsTable.append("CREATE TABLE IF NOT EXISTS pending_submissions (");
+        createPendingSubmissionsTable.append("id integer primary key autoincrement NOT NULL,");
+        createPendingSubmissionsTable.append("abstract_file_id integer NOT NULL,");
+        createPendingSubmissionsTable.append("submission_uuid text NOT NULL,");
+        createPendingSubmissionsTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
+        createPendingSubmissionsTable.append(")");
 
         StringBuilder createDbInfoTable = new StringBuilder();
         createDbInfoTable.append("CREATE TABLE IF NOT EXISTS db_info (");
@@ -204,7 +201,7 @@ public final class SwarmItDbSettings {
         createDbInfoTable.append("value text NOT NULL");
         createDbInfoTable.append(")");
 
-        Connection conn;
+        Connection conn = null;
         try {
             conn = getEphemeralConnection();
             if (null == conn) {
@@ -222,15 +219,33 @@ public final class SwarmItDbSettings {
             LOGGER.log(Level.SEVERE, "Failed to initialize sqlite db schema.", ex); // NON-NLS
             return false;
         } finally {
-            // TODO close connection.
+            SwarmItDbUtils.closeConnection(conn);
         }
         
         return true;
     }
 
+    /**
+     * Insert initial/default content into the database.
+     * Here we insert the database schema major and minor version.
+     * 
+     * @return true on success, else false
+     */
     private boolean insertDefaultDatabaseContent() {
         
-        return true;
+        Connection conn = null;
+        try {
+            conn = getEphemeralConnection();
+            if (null == conn) {
+                return false;
+            }
+
+            return SwarmItDbUtils.updateSchemaVersion(conn,
+                    DB_SCHEMA_VERSION_MAJOR.toString(),
+                    DB_SCHEMA_VERSION_MINOR.toString());
+        } finally {
+            SwarmItDbUtils.closeConnection(conn);
+        }
     }
 
     /**

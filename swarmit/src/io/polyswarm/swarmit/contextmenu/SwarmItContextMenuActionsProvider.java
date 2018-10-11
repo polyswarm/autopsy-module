@@ -34,10 +34,9 @@ public class SwarmItContextMenuActionsProvider implements ContextMenuActionsProv
         
         for (AbstractFile abstractFile : selectedFiles) {
             
-            if (abstractFile != null) {
-                SwarmItMarketplaceSettings settings = new SwarmItMarketplaceSettings();
+            if (abstractFile != null && abstractFile.isFile()) {
                 String menuItemStr = Bundle.SwarmItContextMenuActionsProvider_menuItemStr_text();
-                actions.add(new AddSwarmItAction(menuItemStr, abstractFile, settings));
+                actions.add(new AddSwarmItAction(menuItemStr, abstractFile));
             }
         }
         return actions;

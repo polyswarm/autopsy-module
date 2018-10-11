@@ -10,7 +10,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -210,6 +212,123 @@ public class SwarmItDb {
         } finally {
             releaseExclusiveLock();
         }
+    }
+    
+    /**
+     * Add a new file to the pending_submissions table
+     * 
+     * @param abstractFileId  Autopsy AbstractFile ID number
+     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API 
+     * 
+     * @throws SwarmItDbException 
+     */
+    public void newPendingSubmission(Long abstractFileId, String submissionUUID) throws SwarmItDbException {
+        try {
+            acquireExclusiveLock();
+            
+            Connection conn = connect();
+            
+            PreparedStatement preparedStatement = null;
+            String sql = "INSERT INTO pending_submissions (abstract_file_id, submission_uuid) VALUES (?, ?)";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, abstractFileId);
+                preparedStatement.setString(2, submissionUUID);
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error adding new file to pending_submissions table.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
+     * Get the list of pending submissions from the pending_submissions table.
+     * 
+     * @return  List of SwarmItPendingSubmission's.
+     * 
+     * @throws SwarmItDbException 
+     */
+    public List<SwarmItPendingSubmission> getPendingSubmissions() throws SwarmItDbException {
+        try {
+            acquireSharedLock();
+            
+            Connection conn = connect();
+            
+            List<SwarmItPendingSubmission> pendingSubmissions = new ArrayList<>();
+            SwarmItPendingSubmission psResult;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+            String sql = "SELECT abstract_file_id, submission_uuid from pending_submissions";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    psResult = getPendingSubmissionFromResultSet(resultSet);
+                    pendingSubmissions.add(psResult);
+                }
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error getting all pending submissions.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeResultSet(resultSet);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+            return pendingSubmissions;
+        } finally {
+            releaseSharedLock();
+        }
+    }
+
+    /**
+     * Delete the pending submission from the pending_submissions table.
+     * 
+     * @param pendingSubmission SwarmItPendingSubmission object
+     * 
+     * @throws SwarmItDbException
+     */
+    public void deletePendingSubmission(SwarmItPendingSubmission pendingSubmission) throws SwarmItDbException {
+        try {
+            acquireExclusiveLock();
+            
+            Connection conn = connect();
+            
+            PreparedStatement preparedStatement = null;
+            String sql = "DELETE from pending_submissions WHERE abstract_file_id=? AND submission_uuid=?";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, pendingSubmission.getAbstractFileID());
+                preparedStatement.setString(2, pendingSubmission.getSubmissionUUID());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error deleteing pending submission: " + pendingSubmission.toString(), ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
+     * Convert a ResultSet into a PendingSubmission object.
+     * 
+     * @param resultSet ResultSet row returned from db query
+     * @return  PendingSubmission object
+     * @throws SQLException 
+     */
+    private SwarmItPendingSubmission getPendingSubmissionFromResultSet(ResultSet resultSet) throws SQLException {
+        if (null == resultSet) {
+            return null;
+        }
+        
+        return new SwarmItPendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"));
     }
     
     /**
