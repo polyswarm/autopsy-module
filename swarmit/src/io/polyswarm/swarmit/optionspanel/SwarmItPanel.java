@@ -215,15 +215,12 @@ final class SwarmItPanel extends javax.swing.JPanel {
     @Messages({"SwarmItPanel.testConnectionStatusFailedLabel.text=Connection Failed.",
             "SwarmItPanel.testConnectionStatusSuccessLabel.text=Connection Successful."})
     private void testButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_testButtonActionPerformed
-        // TODO add action handling code here:
-        // attempt to connect to API and attempt using creds
-        // run test..
-        // set             connectionTestStatus = ConnectionTestResult.TESTEDOK;
-        // or set             connectionTestStatus = ConnectionTestResult.CONNECTION_FAILED;
-        //
-        // set here for testing purposes..
-        connectionTestStatus = ConnectionTestResult.CONNECTION_FAILED;
-        //
+        connectionTestStatus = ConnectionTestResult.TESTEDOK;
+
+        if (settings.testSettings() == false) {
+            connectionTestStatus = ConnectionTestResult.CONNECTION_FAILED;
+        }
+
         if (connectionTestStatus == ConnectionTestResult.TESTEDOK) {
             testConnectionStatusLabel.setText(Bundle.SwarmItPanel_testConnectionStatusSuccessLabel_text());
             testConnectionStatusLabel.setForeground(new java.awt.Color(0, 0, 0));

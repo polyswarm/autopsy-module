@@ -66,7 +66,7 @@
                       <Component id="apiUrlTextField" min="-2" pref="588" max="-2" attributes="0"/>
                       <Component id="apiUrlErrorMsgLabel" alignment="0" min="-2" pref="576" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="20" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
