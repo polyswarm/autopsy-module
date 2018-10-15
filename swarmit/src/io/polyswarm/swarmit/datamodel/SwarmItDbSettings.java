@@ -53,17 +53,17 @@ public final class SwarmItDbSettings {
             return false;
         }
         
-        if (createDbDirectory() == true) {
-            boolean result = initializeDatabaseSchema()
-                    && insertDefaultDatabaseContent();
-            if (result == false) {
-                LOGGER.log(Level.SEVERE, "Unable to initialize sqlite db."); // NON-NLS
-            }
-            return result;
-        } else {
+        if (createDbDirectory() == false) {
             LOGGER.log(Level.SEVERE, "Unable to initialize sqlite db. Failed to create base directory."); // NON-NLS
             return false;
         }
+
+        boolean result = initializeDatabaseSchema() && insertDefaultDatabaseContent();
+        if (result == false) {
+            LOGGER.log(Level.SEVERE, "Unable to initialize sqlite db."); // NON-NLS
+        }
+        return result;
+
     }
 
     private boolean createDbDirectory() {
@@ -99,7 +99,7 @@ public final class SwarmItDbSettings {
      * @return Full path
      */
     private String getDbFilePath() {
-        return baseDirPath + File.separator + DB_NAME;
+        return getDbDirectory() + File.separator + DB_NAME;
     }
 
     /**
@@ -214,6 +214,9 @@ public final class SwarmItDbSettings {
             stmt.execute(PRAGMA_READ_UNCOMMITTED_TRUE);
             stmt.execute(PRAGMA_ENCODING_UTF8);
             stmt.execute(PRAGMA_PAGE_SIZE_4096);
+            
+            stmt.execute(createPendingSubmissionsTable.toString());
+            stmt.execute(createDbInfoTable.toString());
                     
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to initialize sqlite db schema.", ex); // NON-NLS

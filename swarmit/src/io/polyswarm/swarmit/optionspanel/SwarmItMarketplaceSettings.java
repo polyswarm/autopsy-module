@@ -5,8 +5,14 @@
  */
 package io.polyswarm.swarmit.optionspanel;
 
+import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openide.util.Exceptions;
 import org.sleuthkit.autopsy.coreutils.ModuleSettings;
 
 /**
@@ -16,8 +22,9 @@ public final class SwarmItMarketplaceSettings {
     
     private final static Logger LOGGER = Logger.getLogger(SwarmItMarketplaceSettings.class.getName());
     private final Double DEFAULT_NCT_AMOUNT = 0.5;
-    private final String DEFAULT_API_KEY = "PLACEHOLDER0123456789ABCDEF";
-    private final String DEFAULT_URL = "https://consumer.stage.polyswarm.network"; // NON-NLS
+    private final String DEFAULT_API_KEY = "PLACEHOLDER0123456789ABCDEF"; // NON-NLS
+    private final String DEFAULT_URL = "https://consumer.stage.polyswarm.network/"; // NON-NLS
+    private final String API_STATUS_ENDPOINT = "status"; // NON-NLS
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
     private final String SETTINGS_TAG_API_URL = "polyswarm.url"; // NON-NLS
     private final String SETTINGS_TAG_API_KEY = "polyswarm.apikey"; // NON-NLS
@@ -65,6 +72,15 @@ public final class SwarmItMarketplaceSettings {
         ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_NCT, getNctAmountString());
     }
 
+    public boolean testSettings() {
+        try {
+            return SwarmItApiClient.testConnection(this);
+        } catch (IOException ex) {
+            LOGGER.log(Level.INFO, "Connection text failed with exception.", ex);
+            return false;
+        }
+    }
+    
     public boolean isChanged() {
         String urlString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL);
         String jsonString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
@@ -77,6 +93,18 @@ public final class SwarmItMarketplaceSettings {
 
     public String getApiUrl() {
         return apiUrl;
+    }
+
+    /**
+     * Get the URI object containing the URI for the status endpoint.
+     * 
+     * The status endpoint is /status
+     * 
+     * @return URI object
+     * @throws URISyntaxException 
+     */
+    public URI getStatusUri() throws URISyntaxException {
+        return new URI(String.format("%s%s", getApiUrl(), "status"));
     }
     
     public String getApiKey() {
@@ -92,23 +120,28 @@ public final class SwarmItMarketplaceSettings {
     }
     
     /**
-     * Set the new URL and test if it's valid.
-     * 
-     * For now - make sure it's not empty and it starts with 'http'.
-     * TODO: do something smarter..
+     * Set the new URL and test if it's a valid URI.
+     * If valid, save it to this instance.
      * 
      * @param newUrl New URL
      * @return  true if valid and set, else false
      */
     public boolean setApiUrl(String newUrl) {
         
-        if (newUrl.isEmpty() || !newUrl.startsWith("http")) {
-            return false;
+        if (!newUrl.isEmpty()) {
+            try {
+                apiUrl = newUrl;
+                if (!newUrl.endsWith("/")) {
+                    apiUrl = String.format("%s/", newUrl);
+                }
+                URI u = new URI(newUrl);
+                return true;
+            } catch (URISyntaxException ex) {
+                return false;
+            }
         }
 
-        apiUrl = newUrl;
-        
-        return true;
+        return false;
     }
 
     /**

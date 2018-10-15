@@ -40,11 +40,22 @@ Clone this repo to your dev box.
 
 When you open NetBeans, choose to open an existing project and select the swarmit subdir.
 
+## Set Autopsy as NetBeans Platform
+
+We want to be able to run our module in Autopsy w/o having to start Autopsy ourselves while we are building/testing/developing this module.
+To do that, we need to define Autopsy sa our NetBeans Platform.
+
+1. Right-click on the SwarmIt project
+2. Go to Libraries
+3. Go to Manage Platforms and add your Autopsy install as a platform.
+4. Select Autopsy sa your platform.
+
 ## Libs
 
 I created a folder called "thirdparty" for all external libs that SwarmIt needs. When they were added to the SwarmIt project, NetBeans copied them to the releases/modules/ext/ folder. So we technically have 2 copies of them. I kept both in the repo to just make thing hopefully easier.
 
-If you let Autopsy install into the default path, the link to the Autopsy Platform should work. If you didn't, you may need to update the libs/plaform settings on the SwarmIt project.
+If you have any problems with the libs throwing ClassNotFound or similar errors, you can re-add them by going to Properties -> Libraries -> Wrapped JARs.
+In that window, use the Add JAR button to select all of the jars in the thirdparty folder.
 
 ## Testing
 

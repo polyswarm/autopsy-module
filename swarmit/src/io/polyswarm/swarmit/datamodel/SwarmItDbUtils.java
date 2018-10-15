@@ -94,12 +94,12 @@ public class SwarmItDbUtils {
                 preparedStatement = conn.prepareStatement(sqlUpdate);
                 preparedStatement.setString(1, majorVersion);
                 preparedStatement.setInt(2, id);
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             } else {
                 preparedStatement = conn.prepareStatement(sqlInsert);
                 preparedStatement.setString(1, "SCHEMA_VERSION");
                 preparedStatement.setString(2, majorVersion);
-                preparedStatement.executeQuery();                
+                preparedStatement.executeUpdate();                
             }
             
             preparedStatement = conn.prepareStatement(sqlQueryMinor);
@@ -109,12 +109,12 @@ public class SwarmItDbUtils {
                 preparedStatement = conn.prepareStatement(sqlUpdate);
                 preparedStatement.setString(1, minorVersion);
                 preparedStatement.setInt(2, id);
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             } else {
                 preparedStatement = conn.prepareStatement(sqlInsert);
                 preparedStatement.setString(1, "SCHEMA_VERSION_MINOR");
                 preparedStatement.setString(2, minorVersion);
-                preparedStatement.executeQuery();
+                preparedStatement.executeUpdate();
             }            
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Error adding schema version to db_info table.", ex); // NON-NLS
