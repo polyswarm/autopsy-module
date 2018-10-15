@@ -7,6 +7,15 @@
             <standalone/>
             <module-dependencies>
                 <dependency>
+                    <code-name-base>org.netbeans.api.progress</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.47.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.options.api</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -117,6 +126,10 @@
             <class-path-extension>
                 <runtime-relative-path>ext/httpcore-4.4.10.jar</runtime-relative-path>
                 <binary-origin>release/modules/ext/httpcore-4.4.10.jar</binary-origin>
+            </class-path-extension>
+            <class-path-extension>
+                <runtime-relative-path>ext/guava-26.0-jre.jar</runtime-relative-path>
+                <binary-origin>release/modules/ext/guava-26.0-jre.jar</binary-origin>
             </class-path-extension>
         </data>
     </configuration>
