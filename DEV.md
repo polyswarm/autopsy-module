@@ -43,7 +43,7 @@ When you open NetBeans, choose to open an existing project and select the swarmi
 ## Set Autopsy as NetBeans Platform
 
 We want to be able to run our module in Autopsy w/o having to start Autopsy ourselves while we are building/testing/developing this module.
-To do that, we need to define Autopsy sa our NetBeans Platform.
+To do that, we need to define Autopsy as our NetBeans Platform.
 
 1. Right-click on the SwarmIt project
 2. Go to Libraries

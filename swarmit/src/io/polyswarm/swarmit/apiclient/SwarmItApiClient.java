@@ -7,7 +7,6 @@ package io.polyswarm.swarmit.apiclient;
 
 import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,14 +17,12 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.sleuthkit.datamodel.AbstractFile;
@@ -74,8 +71,6 @@ public class SwarmItApiClient {
             httppost.setEntity(reqEntity);
 
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
-            // get result from response, it will be the uuid.
-            LOGGER.log(Level.INFO, "Executing request {0}", httppost.getRequestLine());
             return httpclient.execute(httppost, responseHandler);
         } finally {
             httpclient.close();
@@ -90,7 +85,7 @@ public class SwarmItApiClient {
      * 
      * @throws IOException 
      */
-    public static String getSubmissionStatus(String uuid) throws IOException {
+    public static SwarmItSubmissionResultEnum getSubmissionStatus(String uuid) throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
@@ -100,11 +95,15 @@ public class SwarmItApiClient {
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
             // get result from response
             String result = httpclient.execute(httpget, responseHandler);
-            // get status from submission status result
+            // get verdict of a file from submission status result files array
             // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
             JSONTokener tokener = new JSONTokener(result);
             JSONObject json = new JSONObject(tokener);
-            return json.getString("status");
+            JSONArray filesArray = json.getJSONArray("files");
+            LOGGER.log(Level.INFO, "Got Submission status result: `{0}`", result);
+            // TODO: examine content of filesArray to find the result of this one file
+            // consolidate result to a single answer as necessary.
+            return SwarmItSubmissionResultEnum.MALICIOUS;
 
         } finally {
             httpclient.close();
