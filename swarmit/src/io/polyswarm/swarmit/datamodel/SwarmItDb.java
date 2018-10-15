@@ -53,6 +53,7 @@ public class SwarmItDb {
      */
     private SwarmItDb() throws SwarmItDbException {
         dbSettings = new SwarmItDbSettings();
+        dbSettings.initialize();
     }
 
     public void shutdownConnections() throws SwarmItDbException {

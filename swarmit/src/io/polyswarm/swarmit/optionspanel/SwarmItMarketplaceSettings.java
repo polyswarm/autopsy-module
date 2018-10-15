@@ -94,9 +94,17 @@ public final class SwarmItMarketplaceSettings {
     public String getApiUrl() {
         return apiUrl;
     }
-    
+
+    /**
+     * Get the URI object containing the URI for the status endpoint.
+     * 
+     * The status endpoint is /status
+     * 
+     * @return URI object
+     * @throws URISyntaxException 
+     */
     public URI getStatusUri() throws URISyntaxException {
-        return new URI("{0}{1}".format(getApiUrl(), "status"));
+        return new URI(String.format("%s%s", getApiUrl(), "status"));
     }
     
     public String getApiKey() {
@@ -122,12 +130,11 @@ public final class SwarmItMarketplaceSettings {
         
         if (!newUrl.isEmpty()) {
             try {
-                String newUri = newUrl;
-                URI u = new URI(newUri);
-                if (!newUri.endsWith("/")) {
-                    newUri = String.format("{0}/",newUri);
+                apiUrl = newUrl;
+                if (!newUrl.endsWith("/")) {
+                    apiUrl = String.format("%s/", newUrl);
                 }
-                apiUrl = newUri;
+                URI u = new URI(newUrl);
                 return true;
             } catch (URISyntaxException ex) {
                 return false;

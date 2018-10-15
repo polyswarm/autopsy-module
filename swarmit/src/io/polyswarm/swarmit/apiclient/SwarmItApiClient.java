@@ -16,16 +16,20 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.sleuthkit.datamodel.AbstractFile;
+import org.sleuthkit.datamodel.ReadContentInputStream;
 
 /**
  * Make requests to PolySwarm API and manage responses and parse responses.
@@ -55,17 +59,23 @@ public class SwarmItApiClient {
 
         try {
             HttpPost httppost = new HttpPost(apiSettings.getApiUrl());
-            
-            InputStreamEntity reqEntity = new InputStreamEntity(
-                    new ReadContentInputStream(abstractFile),
-                    -1,
-                    ContentType.APPLICATION_OCTET_STREAM
-            );
-            
+
+            InputStreamKnownSizeBody inputStreamBody = new InputStreamKnownSizeBody(
+                    new ReadContentInputStream(abstractFile), 
+                    (int) abstractFile.getSize(),
+                    ContentType.DEFAULT_BINARY, 
+                    abstractFile.getName());
+
+            HttpEntity reqEntity = MultipartEntityBuilder.create()
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .addPart("file", inputStreamBody)
+                    .build();
+
             httppost.setEntity(reqEntity);
 
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
             // get result from response, it will be the uuid.
+            LOGGER.log(Level.INFO, "Executing request {0}", httppost.getRequestLine());
             return httpclient.execute(httppost, responseHandler);
         } finally {
             httpclient.close();
@@ -112,10 +122,9 @@ public class SwarmItApiClient {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         CloseableHttpResponse response = null;
         try {
-            String statusUrl = "{0}/{1}".format(apiSettings.getApiUrl(), "status");
-            HttpHead httphead = new HttpHead(new URI(statusUrl));
+            HttpGet httpget = new HttpGet(apiSettings.getStatusUri());
             
-            response = httpclient.execute(httphead);
+            response = httpclient.execute(httpget);
         
             Integer statusCode = response.getStatusLine().getStatusCode();
 
