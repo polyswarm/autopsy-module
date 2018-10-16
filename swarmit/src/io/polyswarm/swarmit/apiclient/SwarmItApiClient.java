@@ -7,11 +7,13 @@ package io.polyswarm.swarmit.apiclient;
 
 import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -23,10 +25,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.ReadContentInputStream;
+import static io.polyswarm.swarmit.apiclient.SwarmItJsonHelper.getUUIDFromResult;
+import static io.polyswarm.swarmit.apiclient.SwarmItJsonHelper.getJSONObjectFromResult;
 
 /**
  * Make requests to PolySwarm API and manage responses and parse responses.
@@ -55,8 +60,8 @@ public class SwarmItApiClient {
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
         try {
-            HttpPost httppost = new HttpPost(apiSettings.getApiUrl());
-
+            HttpPost httppost = new HttpPost(new URI(apiSettings.getApiUrl()));
+            LOGGER.log(Level.INFO, "Submitting file with request {0}.", httppost.getRequestLine());
             InputStreamKnownSizeBody inputStreamBody = new InputStreamKnownSizeBody(
                     new ReadContentInputStream(abstractFile), 
                     (int) abstractFile.getSize(),
@@ -69,9 +74,16 @@ public class SwarmItApiClient {
                     .build();
 
             httppost.setEntity(reqEntity);
-
+ 
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
-            return httpclient.execute(httppost, responseHandler);
+            String responseBody = httpclient.execute(httppost, responseHandler);
+            return getUUIDFromResult(responseBody);
+        } catch (URISyntaxException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
+            throw new IOException(ex);
+        } catch (JSONException ex) {
+            LOGGER.log(Level.SEVERE, "Unable to parse response as JSON.", ex);
+            throw new IOException(ex);
         } finally {
             httpclient.close();
         }
@@ -81,30 +93,27 @@ public class SwarmItApiClient {
      * Do a GET request for the submission status
      * 
      * @param uuid Submission UUID to check
-     * @return Status of that submission
+     * @return Status content of that submission uuid as a JSONArray
      * 
      * @throws IOException 
      */
-    public static SwarmItSubmissionResultEnum getSubmissionStatus(String uuid) throws IOException {
+    public static JSONObject getSubmissionStatus(String uuid) throws IOException, ClientProtocolException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
         try {
-            HttpGet httpget = new HttpGet(apiSettings.getApiUrl());
-
+            HttpGet httpget = new HttpGet(new URI(apiSettings.getApiUrl() + uuid));
+            LOGGER.log(Level.INFO, "Querying status with request {0}", httpget.getRequestLine());
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
+            String responseBody = httpclient.execute(httpget, responseHandler);
             // get result from response
-            String result = httpclient.execute(httpget, responseHandler);
-            // get verdict of a file from submission status result files array
-            // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
-            JSONTokener tokener = new JSONTokener(result);
-            JSONObject json = new JSONObject(tokener);
-            JSONArray filesArray = json.getJSONArray("files");
-            LOGGER.log(Level.INFO, "Got Submission status result: `{0}`", result);
-            // TODO: examine content of filesArray to find the result of this one file
-            // consolidate result to a single answer as necessary.
-            return SwarmItSubmissionResultEnum.MALICIOUS;
-
+            return getJSONObjectFromResult(responseBody);
+        } catch (URISyntaxException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
+            throw new IOException(ex);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, "Error executing query.", ex);
+            throw new IOException(ex);
         } finally {
             httpclient.close();
         }
@@ -151,5 +160,43 @@ public class SwarmItApiClient {
             }
         }
         return false;
+    }
+    
+    /**
+     * Convert the submission status string into a single verdict.
+     * 
+     * @param submissionStatus String returned by requesting status of UUID from the API client
+     * @return SwarmItVerdictEnum
+     */
+    public static SwarmItVerdictEnum getVerdict(JSONObject submissionStatus) {
+            LOGGER.log(Level.INFO, "Got Submission status: `{0}`", submissionStatus);
+
+            // TODO: revisit how we determine the single verdict. Adjust this accordingly.
+            
+            // get verdict of the file from submission status result 'files' array
+            // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
+            JSONArray filesArray = submissionStatus.getJSONArray("files");
+            // examine content of filesArray to find the result of this one file
+            // consolidate result to a single answer as necessary.
+            if (filesArray == null || filesArray.length() == 0) {
+                return SwarmItVerdictEnum.UNKNOWN;
+            }
+            // get the first file in the files array, the get its list of assertions.
+            JSONArray assertions = filesArray.getJSONObject(0).getJSONArray("assertions");
+            
+            int trueCount = 0;
+            for (int i = 0; i < assertions.length(); i++) {
+                if (assertions.getJSONObject(i).getBoolean("verdict") == true) { 
+                    trueCount++;
+                }
+            }
+            
+            if (trueCount == 0) {
+                return SwarmItVerdictEnum.BENIGN;
+            }
+            
+            return SwarmItVerdictEnum.MALICIOUS;
+
+
     }
 }

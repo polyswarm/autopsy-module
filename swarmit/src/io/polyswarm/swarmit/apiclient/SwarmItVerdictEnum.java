@@ -8,14 +8,14 @@ package io.polyswarm.swarmit.apiclient;
 /**
  * Enum for the potential results of a SwarmIt submission.
  */
-public enum SwarmItSubmissionResultEnum {
+public enum SwarmItVerdictEnum {
     UNKNOWN("Unknown"),
     MALICIOUS("Malicious"),
     BENIGN("Benign");
     
     private final String name;
     
-    SwarmItSubmissionResultEnum(String name) {
+    SwarmItVerdictEnum(String name) {
         this.name = name;
     }
     
@@ -24,12 +24,12 @@ public enum SwarmItSubmissionResultEnum {
         return name;
     }
     
-    public static SwarmItSubmissionResultEnum fromString(String pName) {
+    public static SwarmItVerdictEnum fromString(String pName) {
         if (null == pName) {
             return UNKNOWN;
         }
 
-        for (SwarmItSubmissionResultEnum p : SwarmItSubmissionResultEnum.values()) {
+        for (SwarmItVerdictEnum p : SwarmItVerdictEnum.values()) {
             if (p.toString().equalsIgnoreCase(pName)) {
                 return p;
             }
