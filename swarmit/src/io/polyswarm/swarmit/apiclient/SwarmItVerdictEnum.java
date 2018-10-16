@@ -10,8 +10,10 @@ package io.polyswarm.swarmit.apiclient;
  */
 public enum SwarmItVerdictEnum {
     UNKNOWN("Unknown"),
+    NORESULT("Benign"),
     MALICIOUS("Malicious"),
-    BENIGN("Benign");
+    BENIGN("Benign"),
+    ERROR("ERROR");
     
     private final String name;
     
