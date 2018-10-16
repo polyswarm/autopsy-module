@@ -266,6 +266,48 @@ public class SwarmItDb {
     }
 
     /**
+     * Check to see if a file is already in the pending_submissions table.
+     * 
+     * @param abstractFileId  Autopsy AbstractFile ID number
+     * @return  Boolean true if in the table, else false.
+     * 
+     * @throws SwarmItDbException 
+     */
+    public Boolean isAlreadyPending(Long abstractFileId) throws SwarmItDbException {
+        try {
+            acquireSharedLock();
+            
+            Connection conn = connect();
+            
+            Boolean isFound = false;
+            SwarmItPendingSubmission psResult;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+            String sql = "SELECT count(*) as quantity FROM pending_submissions WHERE abstract_file_id=?";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, abstractFileId);
+                resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    Long count = resultSet.getLong("quantity");
+                    if (count > 0) {
+                        isFound = true;
+                    }
+                }
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error getting all pending submissions.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeResultSet(resultSet);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+            return isFound;
+        } finally {
+            releaseSharedLock();
+        }
+    }
+
+    /**
      * Get the list of pending submissions from the pending_submissions table.
      * 
      * @return  List of SwarmItPendingSubmission's.
@@ -282,7 +324,7 @@ public class SwarmItDb {
             SwarmItPendingSubmission psResult;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
-            String sql = "SELECT abstract_file_id, submission_uuid from pending_submissions";
+            String sql = "SELECT abstract_file_id, submission_uuid FROM pending_submissions";
             try {
                 preparedStatement = conn.prepareStatement(sql);
                 resultSet = preparedStatement.executeQuery();
