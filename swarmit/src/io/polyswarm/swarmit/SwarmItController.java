@@ -9,7 +9,7 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
-import io.polyswarm.swarmit.apiclient.SwarmItSubmissionResultEnum;
+import io.polyswarm.swarmit.apiclient.SwarmItVerdictEnum;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import io.polyswarm.swarmit.datamodel.SwarmItPendingSubmission;
@@ -27,13 +27,21 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Worker;
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.Cancellable;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
+import org.sleuthkit.autopsy.ingest.IngestServices;
+import org.sleuthkit.autopsy.ingest.ModuleDataEvent;
 import org.sleuthkit.datamodel.AbstractFile;
+import org.sleuthkit.datamodel.BlackboardArtifact;
+import org.sleuthkit.datamodel.BlackboardAttribute;
 import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskData;
+import org.sleuthkit.datamodel.TskDataException;
 
 /**
  * Thread that runs in the background to process AbstractFiles that have
@@ -56,6 +64,10 @@ public class SwarmItController {
     private final SwarmItMarketplaceSettings apiSettings;
     private final SwarmItDb dbInstance;
     private ListeningScheduledExecutorService dbExecutor;
+    private static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_VERDICT";
+    private static final String POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME = "PolySwarm Results";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS = "Malicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_NONMALICIOUS = "Non-Malicious";
 
     public Case getAutopsyCase() {
         return autopsyCase;
@@ -67,7 +79,24 @@ public class SwarmItController {
         this.dbInstance = SwarmItDb.getInstance();
         
         dbExecutor = getNewDBExecutor();
+        createCustomArtifactType(this.autopsyCase);
         dbExecutor.scheduleAtFixedRate(new ResolvePendingSubmissionsTask(this.dbInstance, this.autopsyCase), 0, 30, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Create the POLYSWARM_VERDICT custom artifact type and add it to the blackboard.
+     * 
+     * @param autopsyCase Open Case
+     */
+    private void createCustomArtifactType(Case autopsyCase) {
+        try {
+            if (autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME) == null) {
+                LOGGER.log(Level.INFO, "Adding POLYSWARM_VERDICT custom artifact type"); 
+                autopsyCase.getSleuthkitCase().addBlackboardArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
+            }
+        } catch (TskCoreException | TskDataException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to create POLYSWARM_VERDICT custom artifact type", ex);
+        }
     }
     
     public void reset() {
@@ -188,6 +217,7 @@ public class SwarmItController {
                 List<SwarmItPendingSubmission> pList = getDbInstance().getPendingSubmissions();
                 
                 if (pList.isEmpty()) {
+                    LOGGER.log(Level.INFO, "No pending submissions found.");
                     return;
                 }
                 LOGGER.log(Level.INFO, "Found {0} pending submissions. Starting lookup...", pList.size());
@@ -197,27 +227,39 @@ public class SwarmItController {
 
                 // for each pending submission entry, contact API to get status info
                 for (SwarmItPendingSubmission pSub : pList) {
-                    SwarmItSubmissionResultEnum statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
+                    JSONObject statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
+                    SwarmItVerdictEnum verdict = SwarmItApiClient.getVerdict(statusResult);
                     
-                    if (statusResult != SwarmItSubmissionResultEnum.UNKNOWN) {
+                    if (verdict != SwarmItVerdictEnum.UNKNOWN) {
 
                         try {
                             // do lookup for abstractFile ID in the current case
                             AbstractFile af = autopsyCase.getSleuthkitCase().getAbstractFileById(pSub.getAbstractFileID());
 
-                            // TODO: add custom artifact "PolySwarm Results" with verdict to the abstractFile
-
+                            // add PolySwarm custom artifact to abstractFile
+                            BlackboardArtifact artifact = af.newArtifact(autopsyCase.getSleuthkitCase()
+                                    .getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME).getTypeID());
                             
-                            // if accumulated verdict is malicious, set file to known bad
-                            if (statusResult == SwarmItSubmissionResultEnum.MALICIOUS) {
+                            // add attribute to the artifact to store the verdict
+                            if (verdict == SwarmItVerdictEnum.MALICIOUS) {                                
+                                artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                        SwarmItModule.getModuleName(),
+                                        POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS));
+                                // if accumulated verdict is malicious, set file to known bad
                                 af.setKnown(TskData.FileKnown.BAD);
+                            } else {
+                                artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                        SwarmItModule.getModuleName(),
+                                        POLYSWARM_ARTIFACT_ATTRIBUTE_NONMALICIOUS));
                             }
                         
+                            // notify UI to update and display this result
+                            IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(), 
+                                    autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME)));
 
                         } catch (TskCoreException ex) {
                             LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
                         }
-                        
                         
                         // delete entry from pending results db
                         getDbInstance().deletePendingSubmission(pSub);
@@ -227,11 +269,11 @@ public class SwarmItController {
                     progressHandle.progress(pSub.getSubmissionUUID(), workDone);
                     updateProgress(workDone - 1 / (double) pList.size());
                     updateMessage(pSub.getSubmissionUUID());
-
                 }
+                LOGGER.log(Level.INFO, "Completed processing pending submissions.");
                 
             } catch (SwarmItDbException ex) {
-                LOGGER.log(Level.SEVERE, "Failed to get list of pending submissions from db.");
+                LOGGER.log(Level.SEVERE, "Failed to get list of pending submissions from db.",ex);
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, "Failed to get status for submission.", ex);
             } finally {

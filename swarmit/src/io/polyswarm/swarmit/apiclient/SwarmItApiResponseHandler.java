@@ -6,15 +6,12 @@
 package io.polyswarm.swarmit.apiclient;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 /**
  * Handle responses from PolySwarm API and return the result.
@@ -32,23 +29,10 @@ public class SwarmItApiResponseHandler implements ResponseHandler<String> {
         }
         
         if (statusCode == 200) {
-            // get result
-            // {'status': 'OK', 'result': result})
-            JSONTokener tokener = new JSONTokener(responseString);
-            JSONObject json = new JSONObject(tokener);
-            return json.getString("result");
+            return responseString;
 
         } else {
-            // get errors
-            // {'status': 'FAIL', 'errors': message})
-            JSONTokener tokener = new JSONTokener(responseString);
-            JSONObject json = new JSONObject(tokener);
-
-            // parse failure message from JSON blob and append to exception string.
-            throw new ClientProtocolException(
-                    String.format("Failed to submit file. %d : %s.", 
-                            statusCode, 
-                            json.getString("errors")));
+            throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 }
