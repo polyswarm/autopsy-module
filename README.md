@@ -9,11 +9,33 @@ When an Autopsy case is open and has ingested files, a new right-click menu opti
 
 ## Custom artifact type
 
-When the results are returned from the PolySwarm marketplace for a submission, a new subtree will be added to the left result pane under Results -> Extracted Content, called "PolySwarm Results". Under this sub-tree, you can click on the PolySwarm Result node and the upper right frame of the Autopsy UI will display all of the files and results that have been submitted to the PolySwarm marketplace and have a verdict of Malicious or Non-Malicious.
+When the results are returned from the PolySwarm marketplace for a submission, a new subtree will be added to the left result pane under Results -> Extracted Content, called "PolySwarm Results".
+Under this sub-tree, you can click on the PolySwarm Result node and the upper right frame of the Autopsy UI will display all of the files and results that have been submitted to the PolySwarm marketplace.
+If you click on one of the files in the upper right frame, it will populate a table in the bottom right.
+This table will show up to three comments that inform the user about the file & state as it progresses through a PolySwarm bounty.
+
+### Assertions: [verdict]
+
+If any assertion identifies the file as malicious, this field will show `Assertions: Malicious`.
+Otherwise, `Assertions: NonMalicious`
+
+### Votes: [verdict]
+
+Votes is a bit more complex.
+If the arbiters reach a quroum, this will be the majority response.
+If the arbiters fail to reach a quorum, this will be identified as malicious, if even one arbiter votes malicious.
+You can tell if they reached a quorum by the presense of the `Quorum: [verdict]` comment.
+If it exists, they reached a quorum, if it does not exists, they did not.
+Like assertions, the comment will display as either `Votes: Malicious` or `Votes: NonMalicious`.
+
+### Quorum: [verdict]
+
+If the arbiters reached a quorum on the file, this comment will show in the table.
+It will show as either `Quorum: Malicious` or `Quorum: NonMalicious` based on the majority vote.
 
 ## Known bad
 
-If a file is submitted to PolySwarm and the result comes back "malicious", the file will be tagged as Known Bad.
+If a file is submitted to PolySwarm and the arbiters reach a quorum identifying the file as "malicious", it will be tagged Known Bad.
 
 ## Options Panel
 
