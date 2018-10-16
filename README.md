@@ -9,7 +9,7 @@ When an Autopsy case is open and has ingested files, a new right-click menu opti
 
 ## Custom artifact type
 
-When the results are returned from the PolySwarm marketplace for a submission, a new subtree will be added to the left result pane called "PolySwarm Results". Under this tree, each file that is submitted to PolySwarwm in this case will have it's results listed there.
+When the results are returned from the PolySwarm marketplace for a submission, a new subtree will be added to the left result pane under Results -> Extracted Content, called "PolySwarm Results". Under this sub-tree, you can click on the PolySwarm Result node and the upper right frame of the Autopsy UI will display all of the files and results that have been submitted to the PolySwarm marketplace and have a verdict of Malicious or Non-Malicious.
 
 ## Known bad
 
