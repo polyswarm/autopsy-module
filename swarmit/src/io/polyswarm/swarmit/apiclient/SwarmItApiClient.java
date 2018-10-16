@@ -168,35 +168,63 @@ public class SwarmItApiClient {
      * @param submissionStatus String returned by requesting status of UUID from the API client
      * @return SwarmItVerdictEnum
      */
-    public static SwarmItVerdictEnum getVerdict(JSONObject submissionStatus) {
-            LOGGER.log(Level.INFO, "Got Submission status: `{0}`", submissionStatus);
+    public static SwarmItVerdict getVerdict(JSONObject submissionStatus) {
+        LOGGER.log(Level.INFO, "Got Submission status: `{0}`", submissionStatus);
+        // get verdict of the file from submission status result 'files' array
+        // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
+        String status =  submissionStatus.getString("status");
+        JSONArray filesArray = submissionStatus.getJSONArray("files");
+        // examine content of filesArray to find the result of this one file
+        // consolidate result to a single answer as necessary.
+        // If no files exist, then show error. It didn't work.
+        if (filesArray == null || filesArray.length() == 0) {
+            return SwarmItVerdict.errorFactory();
+        }
+        // get the first file in the files array, the get its list of assertions and votes.
+        JSONArray assertions = filesArray.getJSONObject(0).getJSONArray("assertions");
+        JSONArray votes = filesArray.getJSONObject(0).getJSONArray("votes");
+        boolean resultIsNull = filesArray.getJSONObject(0).isNull("result");
 
-            // TODO: revisit how we determine the single verdict. Adjust this accordingly.
-            
-            // get verdict of the file from submission status result 'files' array
-            // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
-            JSONArray filesArray = submissionStatus.getJSONArray("files");
-            // examine content of filesArray to find the result of this one file
-            // consolidate result to a single answer as necessary.
-            if (filesArray == null || filesArray.length() == 0) {
-                return SwarmItVerdictEnum.UNKNOWN;
-            }
-            // get the first file in the files array, the get its list of assertions.
-            JSONArray assertions = filesArray.getJSONObject(0).getJSONArray("assertions");
-            
-            int trueCount = 0;
-            for (int i = 0; i < assertions.length(); i++) {
-                if (assertions.getJSONObject(i).getBoolean("verdict") == true) { 
-                    trueCount++;
-                }
-            }
-            
-            if (trueCount == 0) {
-                return SwarmItVerdictEnum.BENIGN;
-            }
-            
-            return SwarmItVerdictEnum.MALICIOUS;
+        // If it doesn't have assertions, votes or a result, return UNKNOWN
+        if (assertions.length() == 0 && votes.length() == 0 && resultIsNull) {
+            return SwarmItVerdict.unknownFactory();
+        }
+        
+        SwarmItVerdictEnum assertionVerdict = null;
+        SwarmItVerdictEnum votesVerdict = null;
+        SwarmItVerdictEnum quorumVerdict = null;
+                
+        // Result holds the majority rule when quorum is reached on a file. If this exists, give the result and exit.
+        if (!resultIsNull) {
+            boolean result = filesArray.getJSONObject(0).getBoolean("result");
+            quorumVerdict = result ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+            // votes verdict will be the same as quorum verdict (because quorum is based on votes)
+            votesVerdict = result ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+        } else if (status.equals("Settled") || status.equals("Duplicate")) {
+            /* if we don't have a quorum, but it is settled (or a dupe, for now) report if any malicious votes
+             * We don't really want dup here, it is a race condition. Hoping that all the dup files have already been resolved.
+            */
+            int maliciousVoteCount = maliciousCount(votes, "vote");
+            votesVerdict = maliciousVoteCount == 0 ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+        }
 
+        // After the reveal phase, add in the assertion vote
+        if (votes.length() > 0) {
+            // Find the total count of malicious votes.
+            int maliciousAssertionCount = maliciousCount(assertions, "verdict");
+            assertionVerdict = maliciousAssertionCount == 0 ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+        }
 
+        return new SwarmItVerdict(assertionVerdict, votesVerdict, quorumVerdict);
+    }
+    
+    private static int maliciousCount(JSONArray array, String boolName) {
+        int trueCount = 0;
+        for (int i = 0; i < array.length(); i++) {
+            if (array.getJSONObject(i).getBoolean(boolName)) { 
+                trueCount++;
+            }
+        }
+        return trueCount;
     }
 }

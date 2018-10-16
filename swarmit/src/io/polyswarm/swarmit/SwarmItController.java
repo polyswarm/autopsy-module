@@ -10,6 +10,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
 import io.polyswarm.swarmit.apiclient.SwarmItVerdictEnum;
+import io.polyswarm.swarmit.apiclient.SwarmItVerdict;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import io.polyswarm.swarmit.datamodel.SwarmItPendingSubmission;
@@ -66,8 +67,12 @@ public class SwarmItController {
     private ListeningScheduledExecutorService dbExecutor;
     private static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_VERDICT";
     private static final String POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME = "PolySwarm Results";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS = "Malicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_NONMALICIOUS = "Non-Malicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_MALICIOUS = "Quorum: Malicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_NONMALICIOUS = "Quorum: NonMalicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_MALICIOUS = "Assertions: Malicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_NONMALICIOUS = "Assertions: NonMalicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_MALICIOUS = "Votes: Malicious";
+    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_NONMALICIOUS = "Votes: NonMalicious";
 
     public Case getAutopsyCase() {
         return autopsyCase;
@@ -190,7 +195,25 @@ public class SwarmItController {
     public static class ResolvePendingSubmissionsTask extends BackgroundTask {
         private final SwarmItDb dbInstance;
         private final Case autopsyCase;
-
+        final BlackboardAttribute quorumMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                        SwarmItModule.getModuleName(),
+                                        POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_MALICIOUS);
+        final BlackboardAttribute quorumBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_NONMALICIOUS);
+        final BlackboardAttribute votesMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_MALICIOUS);
+        final BlackboardAttribute votesBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_NONMALICIOUS);
+        final BlackboardAttribute assertionsMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_MALICIOUS);
+        final BlackboardAttribute assertionsBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_NONMALICIOUS);
+        
         private ProgressHandle progressHandle;
 
         public SwarmItDb getDbInstance() {
@@ -224,47 +247,48 @@ public class SwarmItController {
                 progressHandle.switchToDeterminate(pList.size());
                 updateProgress(0.0);
                 int workDone = 0;
+                
 
                 // for each pending submission entry, contact API to get status info
                 for (SwarmItPendingSubmission pSub : pList) {
                     JSONObject statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
-                    SwarmItVerdictEnum verdict = SwarmItApiClient.getVerdict(statusResult);
+                    SwarmItVerdict verdict = SwarmItApiClient.getVerdict(statusResult);
                     
-                    if (verdict != SwarmItVerdictEnum.UNKNOWN) {
+                    try {
+                        // do lookup for abstractFile ID in the current case
+                        AbstractFile af = autopsyCase.getSleuthkitCase().getAbstractFileById(pSub.getAbstractFileID());
 
-                        try {
-                            // do lookup for abstractFile ID in the current case
-                            AbstractFile af = autopsyCase.getSleuthkitCase().getAbstractFileById(pSub.getAbstractFileID());
+                        List<BlackboardArtifact> artifacts = af.getArtifacts(POLYSWARM_ARTIFACT_TYPE_NAME);
 
+                        BlackboardArtifact artifact;
+                        if (artifacts.isEmpty()) {
                             // add PolySwarm custom artifact to abstractFile
-                            BlackboardArtifact artifact = af.newArtifact(autopsyCase.getSleuthkitCase()
-                                    .getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME).getTypeID());
-                            
-                            // add attribute to the artifact to store the verdict
-                            if (verdict == SwarmItVerdictEnum.MALICIOUS) {                                
-                                artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                        SwarmItModule.getModuleName(),
-                                        POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS));
-                                // if accumulated verdict is malicious, set file to known bad
-                                af.setKnown(TskData.FileKnown.BAD);
-                            } else {
-                                artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                        SwarmItModule.getModuleName(),
-                                        POLYSWARM_ARTIFACT_ATTRIBUTE_NONMALICIOUS));
-                            }
-                        
-                            // notify UI to update and display this result
-                            IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(), 
-                                    autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME)));
-
-                        } catch (TskCoreException ex) {
-                            LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
+                            artifact = af.newArtifact(autopsyCase.getSleuthkitCase()
+                                .getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME).getTypeID());
+                        } else {
+                            artifact = artifacts.get(0);
                         }
                         
+                        // Add the verdicts when they don't already exist, aren't null or unknown
+                        addArtifact(verdict.getAssertionsVerdict(), null, artifact, assertionsBenign, assertionsMalicious);
+                        addArtifact(verdict.getVotesVerdict(), null, artifact, votesBenign, votesMalicious);
+                        addArtifact(verdict.getQuorumVerdict(), af, artifact, quorumBenign, quorumMalicious);
+                        
+                        // notify UI to update and display this result
+                        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(), 
+                                autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME)));
+
+                    } catch (TskCoreException ex) {
+                        LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
+                    }
+
+                    // If it hasn't been settled/quorum reached, don't delete it. We want more info.
+                    SwarmItVerdictEnum votes = verdict.getVotesVerdict();
+                    if (votes != null && votes != SwarmItVerdictEnum.UNKNOWN) {
                         // delete entry from pending results db
                         getDbInstance().deletePendingSubmission(pSub);
-                        
                     }
+                        
                     workDone++;
                     progressHandle.progress(pSub.getSubmissionUUID(), workDone);
                     updateProgress(workDone - 1 / (double) pList.size());
@@ -285,6 +309,35 @@ public class SwarmItController {
         @NbBundle.Messages({"ResolvePendingSubmissionsTask.populatingDb.status=checking verdict of submitted artifacts.",})
         ProgressHandle getInitialProgressHandle() {
             return ProgressHandle.createHandle(Bundle.ResolvePendingSubmissionsTask_populatingDb_status(), this);
+        }
+    }
+    
+    public static void addArtifact(SwarmItVerdictEnum verdict, AbstractFile af, BlackboardArtifact artifact, BlackboardAttribute good, BlackboardAttribute bad) throws TskCoreException {
+        // add attribute to the artifact to store the verdict
+        if (verdict == null) {
+            LOGGER.log(Level.INFO, "Verdict has not come in yet.");
+            return;
+        }
+        if (artifact.getAttributes().contains(good) || artifact.getAttributes().contains(bad)) {
+            LOGGER.log(Level.INFO, "Artifact already contains this verdict.");
+            return;
+        }
+        switch (verdict) {
+            case MALICIOUS:
+                LOGGER.log(Level.INFO, "File identified as malicious.");
+                artifact.addAttribute(bad);
+                // We only mark known bad if quorum reached on malicious
+                if (af != null) {
+                    af.setKnown(TskData.FileKnown.BAD);
+                }
+                break;
+            case BENIGN:
+                LOGGER.log(Level.INFO, "File identified as non malicious.");
+                artifact.addAttribute(good);
+                break;
+            default:
+                // Not doing anything with error or unknown for the moment
+                break;
         }
     }
 }
