@@ -53,23 +53,33 @@ public class AddSwarmItAction extends AbstractAction {
     @Override
     @Messages({"AddSwarmItAction.dbError.message=Failed to record submission in pending submissions database.",
         "AddSwarmItAction.submitError.message=Failed to submit file to PolySwarm.",
-        "AddSwarmItAction.messageDialog.title=SwarmIt"})
+        "AddSwarmItAction.messageDialog.title=SwarmIt",
+        "AddSwarmItAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
         if (abstractFile != null) {
             Long abstractFileId = abstractFile.getId();
 
             try {
-                // submit the file
-                String submissionUUID = SwarmItApiClient.submitFile(abstractFile);
-
-                // add file info to pending submissions db
                 SwarmItDb instance = SwarmItDb.getInstance();
-                instance.newPendingSubmission(abstractFileId, submissionUUID);
-
-                LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}, submissionUUID: {1}.",
+                // TODO: here we check to see if a file was already submitted before re-submitting
+                // we should allow the user to click YES/NO to force a re-submit.
+                if (!instance.isAlreadyPending(abstractFileId)) {
+                    // submit the file
+                    String submissionUUID = SwarmItApiClient.submitFile(abstractFile);
+                    // add file info to pending submissions db
+                    instance.newPendingSubmission(abstractFileId, submissionUUID);                    
+                    LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}, submissionUUID: {1}.",
                         abstractFileId.toString(),
                         submissionUUID));
+                } else {
+                    LOGGER.log(Level.INFO, "File is already pending, not re-submitting.");
+                    JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
+                        Bundle.AddSwarmItAction_alreadyPending_message(),
+                        Bundle.AddSwarmItAction_messageDialog_title(), 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+
             } catch (SwarmItDbException ex) {
                 LOGGER.log(Level.SEVERE, "Error adding new submission data to sqlite db.", ex);
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
