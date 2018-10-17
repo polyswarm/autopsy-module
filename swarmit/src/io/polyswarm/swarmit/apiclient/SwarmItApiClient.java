@@ -202,6 +202,8 @@ public class SwarmItApiClient {
         JSONArray assertions = filesArray.getJSONObject(0).getJSONArray("assertions");
         JSONArray votes = filesArray.getJSONObject(0).getJSONArray("votes");
         String status =  filesArray.getJSONObject(0).getString("bounty_status");
+        String guid =  filesArray.getJSONObject(0).getString("bounty_guid");
+        String hash =  filesArray.getJSONObject(0).getString("hash");
         boolean resultIsNull = filesArray.getJSONObject(0).isNull("result");
 
         // If it doesn't have assertions, votes or a result, return UNKNOWN
@@ -232,7 +234,7 @@ public class SwarmItApiClient {
             assertionVerdict = maliciousAssertionCount == 0 ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
         }
 
-        return new SwarmItVerdict(assertionVerdict, votesVerdict, quorumVerdict);
+        return new SwarmItVerdict(guid, hash, assertionVerdict, votesVerdict, quorumVerdict);
     }
 
     private static int maliciousCount(JSONArray array, String boolName) {
