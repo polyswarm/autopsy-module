@@ -119,7 +119,8 @@ public class SwarmItApiClient {
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
         try {
-            HttpGet httpget = new HttpGet(new URI(apiSettings.getApiUrl() + uuid));
+            String uri = String.format("%s/uuid/%s", apiSettings.getApiUrl(), uuid);
+            HttpGet httpget = new HttpGet(new URI(uri));
             LOGGER.log(Level.INFO, "Querying status with request {0}", httpget.getRequestLine());
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
             String responseBody = httpclient.execute(httpget, responseHandler);
