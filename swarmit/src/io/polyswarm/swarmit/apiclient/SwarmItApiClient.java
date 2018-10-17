@@ -59,16 +59,16 @@ public class SwarmItApiClient {
     /**
      * Make this all static methods.
      */
-    private SwarmItApiClient() {        
+    private SwarmItApiClient() {
     }
 
     /**
      * Remove the file object from the abstractFile and submit it to the
      * API endpoint.
-     * 
+     *
      * @param abstractFile AbstractFile object that contains a file.
      * @return The submission uuid
-     * 
+     *
      * @throws IOException
      */
     public static String submitFile(AbstractFile abstractFile) throws IOException {
@@ -80,9 +80,9 @@ public class SwarmItApiClient {
             HttpPost httppost = new HttpPost(new URI(apiSettings.getApiUrl()));
             LOGGER.log(Level.INFO, "Submitting file with request {0}.", httppost.getRequestLine());
             InputStreamKnownSizeBody inputStreamBody = new InputStreamKnownSizeBody(
-                    new ReadContentInputStream(abstractFile), 
+                    new ReadContentInputStream(abstractFile),
                     (int) abstractFile.getSize(),
-                    ContentType.DEFAULT_BINARY, 
+                    ContentType.DEFAULT_BINARY,
                     abstractFile.getName());
 
             HttpEntity reqEntity = MultipartEntityBuilder.create()
@@ -91,7 +91,7 @@ public class SwarmItApiClient {
                     .build();
 
             httppost.setEntity(reqEntity);
- 
+
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
             String responseBody = httpclient.execute(httppost, responseHandler);
             return getUUIDFromResult(responseBody);
@@ -108,11 +108,11 @@ public class SwarmItApiClient {
 
     /**
      * Do a GET request for the submission status
-     * 
+     *
      * @param uuid Submission UUID to check
      * @return Status content of that submission uuid as a JSONArray
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public static JSONObject getSubmissionStatus(String uuid) throws IOException, ClientProtocolException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -138,25 +138,25 @@ public class SwarmItApiClient {
 
     /**
      * Do a HEAD request for the client API status.
-     * 
+     *
      * @param apiSettings - Instance of the API settings
      * @return true if connection successful, else false
-     * @throws IOException 
+     * @throws IOException
      */
     public static boolean testConnection(SwarmItMarketplaceSettings apiSettings) throws IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         CloseableHttpResponse response = null;
         try {
             HttpGet httpget = new HttpGet(apiSettings.getStatusUri());
-            
+
             response = httpclient.execute(httpget);
-        
+
             Integer statusCode = response.getStatusLine().getStatusCode();
 
             // consume the full response content
             HttpEntity entity = response.getEntity();
             EntityUtils.consume(entity);
-            
+
             if (statusCode == 200) {
                 return true;
             } else {
@@ -165,7 +165,7 @@ public class SwarmItApiClient {
                 while (it.hasNext()) {
                     LOGGER.log(Level.WARNING, " {0}", it.next());
                 }
-                
+
             }
         } catch (URISyntaxException ex) {
             LOGGER.log(Level.SEVERE, "Invalid URI.", ex);
@@ -178,10 +178,10 @@ public class SwarmItApiClient {
         }
         return false;
     }
-    
+
     /**
      * Convert the submission status string into a single verdict.
-     * 
+     *
      * @param submissionStatus String returned by requesting status of UUID from the API client
      * @return SwarmItVerdictEnum
      */
@@ -206,17 +206,17 @@ public class SwarmItApiClient {
         if (assertions.length() == 0 && votes.length() == 0 && resultIsNull) {
             return SwarmItVerdict.unknownFactory();
         }
-        
+
         SwarmItVerdictEnum assertionVerdict = null;
         SwarmItVerdictEnum votesVerdict = null;
         SwarmItVerdictEnum quorumVerdict = null;
-                
+
         // Result holds the majority rule when quorum is reached on a file. If this exists, give the result and exit.
         if (!resultIsNull) {
             boolean result = filesArray.getJSONObject(0).getBoolean("result");
-            quorumVerdict = result ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+            quorumVerdict = result ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
             // votes verdict will be the same as quorum verdict (because quorum is based on votes)
-            votesVerdict = result ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
+            votesVerdict = result ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
         } else if (status.equals("Settled") || status.equals("Duplicate")) {
             /* if we don't have a quorum, but it is settled (or a dupe, for now) report if any malicious votes
              * We don't really want dup here, it is a race condition. Hoping that all the dup files have already been resolved.
@@ -234,11 +234,11 @@ public class SwarmItApiClient {
 
         return new SwarmItVerdict(assertionVerdict, votesVerdict, quorumVerdict);
     }
-    
+
     private static int maliciousCount(JSONArray array, String boolName) {
         int trueCount = 0;
         for (int i = 0; i < array.length(); i++) {
-            if (array.getJSONObject(i).getBoolean(boolName)) { 
+            if (array.getJSONObject(i).getBoolean(boolName)) {
                 trueCount++;
             }
         }
