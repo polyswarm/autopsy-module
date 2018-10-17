@@ -358,7 +358,7 @@ public class SwarmItController {
         }
     }
 
-    public void addInfoArtifact(String information, String formatString, BlackboardArtifact artifact) {
+    public void addInfoArtifact(String information, String formatString, BlackboardArtifact artifact) throws TskCoreException {
         if (information == null) {
             return;
         }
