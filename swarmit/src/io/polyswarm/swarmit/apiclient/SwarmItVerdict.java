@@ -30,30 +30,42 @@ public class SwarmItVerdict {
     final private SwarmItVerdictEnum assertionsVerdict;
     final private SwarmItVerdictEnum votesVerdict;
     final private SwarmItVerdictEnum quorumVerdict;
-    
-    public SwarmItVerdict(SwarmItVerdictEnum assertion, SwarmItVerdictEnum votes, SwarmItVerdictEnum quorum) {
+    final private String bountyGuid;
+    final private String fileHash;
+
+    public SwarmItVerdict(String guid, String hash, SwarmItVerdictEnum assertion, SwarmItVerdictEnum votes, SwarmItVerdictEnum quorum) {
         assertionsVerdict = assertion;
         votesVerdict = votes;
         quorumVerdict = quorum;
+        bountyGuid = guid;
+        fileHash = hash;
     }
-    
+
     public static SwarmItVerdict errorFactory() {
-        return new SwarmItVerdict(SwarmItVerdictEnum.ERROR, SwarmItVerdictEnum.ERROR, SwarmItVerdictEnum.ERROR);
+        return new SwarmItVerdict(null, null, SwarmItVerdictEnum.ERROR, SwarmItVerdictEnum.ERROR, SwarmItVerdictEnum.ERROR);
     }
-    
+
     public static SwarmItVerdict unknownFactory() {
-        return new SwarmItVerdict(SwarmItVerdictEnum.UNKNOWN, SwarmItVerdictEnum.UNKNOWN, SwarmItVerdictEnum.UNKNOWN);
+        return new SwarmItVerdict(null, null, SwarmItVerdictEnum.UNKNOWN, SwarmItVerdictEnum.UNKNOWN, SwarmItVerdictEnum.UNKNOWN);
     }
-    
+
     public SwarmItVerdictEnum getAssertionsVerdict() {
         return assertionsVerdict;
     }
-    
-    public SwarmItVerdictEnum getVotesVerdict() {
-        return votesVerdict;
+
+    public String getBountyGuid() {
+        return bountyGuid;
     }
-    
+
+    public String getFileHash() {
+        return fileHash;
+    }
+
     public SwarmItVerdictEnum getQuorumVerdict() {
         return quorumVerdict;
+    }
+
+    public SwarmItVerdictEnum getVotesVerdict() {
+        return votesVerdict;
     }
 }
