@@ -77,7 +77,12 @@ public class SwarmItApiClient {
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
         try {
+            String apikey = apiSettings.getApiKey();
             HttpPost httppost = new HttpPost(new URI(apiSettings.getApiUrl()));
+            if (apikey != null && !apikey.isEmpty()) {
+                httppost.addHeader("Authorization", apiSettings.getApiKey());
+            }
+            
             LOGGER.log(Level.INFO, "Submitting file with request {0}.", httppost.getRequestLine());
             InputStreamKnownSizeBody inputStreamBody = new InputStreamKnownSizeBody(
                     new ReadContentInputStream(abstractFile),

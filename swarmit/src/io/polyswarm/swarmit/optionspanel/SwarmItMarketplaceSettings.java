@@ -173,12 +173,10 @@ public final class SwarmItMarketplaceSettings {
      * @return true if valid and set, else false
      */
     public boolean setApiKey(String newApiKey) {
-//        if (newApiKey.isEmpty()) {
-//            return false;
-//        }
-//        apiKey = newApiKey;
-
-        apiKey = DEFAULT_API_KEY;
+        if (newApiKey.isEmpty()) {
+            return false;
+        }
+        apiKey = newApiKey;
         return true;
     }
     

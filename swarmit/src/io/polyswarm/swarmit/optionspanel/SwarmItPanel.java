@@ -60,7 +60,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
         apiUrlErrorMsgLabel = new javax.swing.JLabel();
         apiKeyPanel = new javax.swing.JPanel();
         apiKeyErrorMsgLabel = new javax.swing.JLabel();
-        apiKeyTextArea = new javax.swing.JTextArea();
+        apiKeyTextField = new javax.swing.JTextField();
         nctAmountPanel = new javax.swing.JPanel();
         defaultNctAmountTextField = new javax.swing.JTextField();
         nctAmountUnitLabel = new javax.swing.JLabel();
@@ -88,7 +88,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addGroup(apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(apiUrlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 588, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(apiUrlErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 576, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(54, Short.MAX_VALUE))
         );
         apiUrlPanelLayout.setVerticalGroup(
             apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -107,10 +107,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
         apiKeyErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
         org.openide.awt.Mnemonics.setLocalizedText(apiKeyErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyErrorMsgLabel.text")); // NOI18N
 
-        apiKeyTextArea.setColumns(20);
-        apiKeyTextArea.setRows(5);
-        apiKeyTextArea.setText("ABCEDF1234567890"); // NOI18N
-        apiKeyTextArea.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyTextArea.toolTipText")); // NOI18N
+        apiKeyTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiKeyTextField.text")); // NOI18N
 
         javax.swing.GroupLayout apiKeyPanelLayout = new javax.swing.GroupLayout(apiKeyPanel);
         apiKeyPanel.setLayout(apiKeyPanelLayout);
@@ -119,7 +116,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
             .addGroup(apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(apiKeyTextArea, javax.swing.GroupLayout.PREFERRED_SIZE, 567, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -127,10 +124,10 @@ final class SwarmItPanel extends javax.swing.JPanel {
             apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(apiKeyTextArea, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
 
         nctAmountPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.nctAmountTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
@@ -213,7 +210,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
                     .addComponent(nctAmountPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(apiKeyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(19, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -222,9 +219,9 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addComponent(apiUrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nctAmountPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(35, 35, 35))
         );
@@ -251,19 +248,18 @@ final class SwarmItPanel extends javax.swing.JPanel {
 
     private void customizeComponents() {
         // read settings and initialize GUI
-        apiKeyTextArea.setText(settings.getApiKey());
+        apiKeyTextField.setText(settings.getApiKey());
         apiUrlTextField.setText(settings.getApiUrl());
         defaultNctAmountTextField.setText(settings.getNctAmountString());
 
         // listen to changes in form fields and call controller.changed()
-        apiKeyTextArea.getDocument().addDocumentListener(new MyDocumentListener());
+        apiKeyTextField.getDocument().addDocumentListener(new MyDocumentListener());
         apiUrlTextField.getDocument().addDocumentListener(new MyDocumentListener());
         defaultNctAmountTextField.getDocument().addDocumentListener(new MyDocumentListener());
 
-        // NOTE: We've disabled the API KEY and DEFAULT NCT AMOUNT fields,
-        // since they are not currently used.
-        // TODO: remove these next 2 lines when they are to be used.
-        apiKeyTextArea.setEditable(false);
+        // NOTE: We've disabled the DEFAULT NCT AMOUNT fields,
+        // since it is not currently used.
+        // TODO: remove this lineswhen it is to be used.
         defaultNctAmountTextField.setEditable(false);
 
         connectionTestStatus = ConnectionTestResult.UNTESTED;
@@ -308,7 +304,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
      * @return true if valid, else false
      */
     boolean validApiKey() {
-        boolean isValid = settings.setApiKey(apiKeyTextArea.getText());
+        boolean isValid = settings.setApiKey(apiKeyTextField.getText());
         if (isValid == false) {
             apiKeyErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.apiKeyErrorMsgLabel.text"));
         }
@@ -406,7 +402,7 @@ final class SwarmItPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel apiKeyErrorMsgLabel;
     private javax.swing.JPanel apiKeyPanel;
-    private javax.swing.JTextArea apiKeyTextArea;
+    private javax.swing.JTextField apiKeyTextField;
     private javax.swing.JLabel apiUrlErrorMsgLabel;
     private javax.swing.JPanel apiUrlPanel;
     private javax.swing.JTextField apiUrlTextField;
