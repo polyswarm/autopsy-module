@@ -367,11 +367,11 @@ public class SwarmItController {
         BlackboardAttribute informationAttribute = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
                                 SwarmItModule.getModuleName(),
                                 displayString);
-        // Not sure if the display string will be enough to cause .equals to be true.
-        // If not, going to have to iterate across all attributes looking for the display string
-        if (artifact.getAttributes().contains(informationAttribute)) {
-            LOGGER.log(Level.INFO, "Artifact already contains %s.", displayString);
-            return;
+        for (BlackboardAttribute attr : artifact.getAttributes()) {
+            if (attr.getDisplayString().equals(displayString)) {
+                LOGGER.log(Level.INFO, "Artifact already contains %s.", displayString);
+                return;
+            }
         }
 
         artifact.addAttribute(informationAttribute);
