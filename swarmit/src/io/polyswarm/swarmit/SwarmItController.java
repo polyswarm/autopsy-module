@@ -26,6 +26,7 @@ package io.polyswarm.swarmit;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
 import io.polyswarm.swarmit.apiclient.SwarmItVerdict;
 import io.polyswarm.swarmit.apiclient.SwarmItVerdictEnum;
@@ -46,6 +47,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Worker;
+import org.apache.http.client.ClientProtocolException;
 import org.json.JSONObject;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.Cancellable;
@@ -266,7 +268,15 @@ public class SwarmItController {
 
                 // for each pending submission entry, contact API to get status info
                 for (SwarmItPendingSubmission pSub : pList) {
-                    JSONObject statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
+                    JSONObject statusResult;
+                    try {
+                        statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
+                    } catch (BadRequestException e) {
+                        // This uuid is no longer available on the service. remove. (redis reset)
+                        LOGGER.log(Level.INFO, "Submission {0} is not available. Removing.", pSub.getSubmissionUUID());
+                        getDbInstance().deletePendingSubmission(pSub);
+                        continue;
+                    }
                     SwarmItVerdict verdict = SwarmItApiClient.getVerdict(statusResult);
 
                     try {
