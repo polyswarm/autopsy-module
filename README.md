@@ -39,11 +39,21 @@ If a file is submitted to PolySwarm and the arbiters reach a quorum identifying 
 
 ## Options Panel
 
-In the Options Panel, there is a purple "P" logo for this module. On that options panel, the user can set the parameters of the SwarmIt module. These include
+In the Options Panel, there is a purple "P" logo for this module. On that options panel, the user can set the parameters of the SwarmIt module.
 
-* Submission API URL
-* API Key
-* NCT Amount to pay per submisison.
+### Submission API URL
 
-Note: currently the API key and NCT amount are visible, but not implemented, so you can ignore them.
+This is the url of the hosted service that will submit the user's files to polyswarm.
 
+*This must be a valid service.*
+
+### API Key
+
+Consumer on the PolySwarm staging and production environment is protected via API Key.
+Keys can be obtained from the PolySwarm team directly.
+
+If targeting a development environment, such as orchestration, leave this field blank.
+
+### NCT Amount to pay per submisison.
+
+*Note: currently NCT amount is visible, but not implemented, so you can ignore it.*
