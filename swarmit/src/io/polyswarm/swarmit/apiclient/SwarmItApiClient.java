@@ -119,7 +119,8 @@ public class SwarmItApiClient {
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
         try {
-            HttpGet httpget = new HttpGet(new URI(apiSettings.getApiUrl() + uuid));
+            String uri = String.format("%s/uuid/%s", apiSettings.getApiUrl(), uuid);
+            HttpGet httpget = new HttpGet(new URI(uri));
             LOGGER.log(Level.INFO, "Querying status with request {0}", httpget.getRequestLine());
             ResponseHandler<String> responseHandler = new SwarmItApiResponseHandler();
             String responseBody = httpclient.execute(httpget, responseHandler);
@@ -189,7 +190,7 @@ public class SwarmItApiClient {
         LOGGER.log(Level.INFO, "Got Submission status: `{0}`", submissionStatus);
         // get verdict of the file from submission status result 'files' array
         // {'uuid': submission.uuid, 'files': files, 'status': submission.get_status()}
-        String status =  submissionStatus.getString("status");
+
         JSONArray filesArray = submissionStatus.getJSONArray("files");
         // examine content of filesArray to find the result of this one file
         // consolidate result to a single answer as necessary.
@@ -200,10 +201,13 @@ public class SwarmItApiClient {
         // get the first file in the files array, the get its list of assertions and votes.
         JSONArray assertions = filesArray.getJSONObject(0).getJSONArray("assertions");
         JSONArray votes = filesArray.getJSONObject(0).getJSONArray("votes");
+        String status =  filesArray.getJSONObject(0).getString("bounty_status");
+        String guid =  filesArray.getJSONObject(0).getString("bounty_guid");
+        String hash =  filesArray.getJSONObject(0).getString("hash");
         boolean resultIsNull = filesArray.getJSONObject(0).isNull("result");
 
         // If it doesn't have assertions, votes or a result, return UNKNOWN
-        if (assertions.length() == 0 && votes.length() == 0 && resultIsNull) {
+        if (assertions.length() == 0 && votes.length() == 0 && resultIsNull && status.length() == 0) {
             return SwarmItVerdict.unknownFactory();
         }
 
@@ -213,14 +217,12 @@ public class SwarmItApiClient {
 
         // Result holds the majority rule when quorum is reached on a file. If this exists, give the result and exit.
         if (!resultIsNull) {
-            boolean result = filesArray.getJSONObject(0).getBoolean("result");
-            quorumVerdict = result ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
+            boolean malicious = filesArray.getJSONObject(0).getBoolean("result");
+            quorumVerdict = malicious ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
             // votes verdict will be the same as quorum verdict (because quorum is based on votes)
-            votesVerdict = result ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
-        } else if (status.equals("Settled") || status.equals("Duplicate")) {
-            /* if we don't have a quorum, but it is settled (or a dupe, for now) report if any malicious votes
-             * We don't really want dup here, it is a race condition. Hoping that all the dup files have already been resolved.
-            */
+            votesVerdict = malicious ? SwarmItVerdictEnum.MALICIOUS : SwarmItVerdictEnum.BENIGN;
+        } else if (status.equals("Settled")) {
+            // if we don't have a quorum, but it is settled report if any malicious votes
             int maliciousVoteCount = maliciousCount(votes, "vote");
             votesVerdict = maliciousVoteCount == 0 ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
         }
@@ -232,7 +234,7 @@ public class SwarmItApiClient {
             assertionVerdict = maliciousAssertionCount == 0 ? SwarmItVerdictEnum.BENIGN : SwarmItVerdictEnum.MALICIOUS;
         }
 
-        return new SwarmItVerdict(assertionVerdict, votesVerdict, quorumVerdict);
+        return new SwarmItVerdict(guid, hash, assertionVerdict, votesVerdict, quorumVerdict);
     }
 
     private static int maliciousCount(JSONArray array, String boolName) {

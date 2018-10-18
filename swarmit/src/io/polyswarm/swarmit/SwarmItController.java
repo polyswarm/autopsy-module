@@ -63,20 +63,20 @@ import org.sleuthkit.datamodel.TskDataException;
 /**
  * Thread that runs in the background to process AbstractFiles that have
  * been submitted using SwarmIt right-click menu option.
- * 
+ *
  * AbstractFile ID and PolySwarm UUID are kept in sqlite db.
- * 
+ *
  * This process will periodically check the sqlite db for new entries.
- * For each entry, this process will contact the PolySwarm API 
+ * For each entry, this process will contact the PolySwarm API
  * to get the analysis results.
  * It will then add a PolySwarm Results artifact to the AbstractFile.
  * These artifacts will be displayed in the left pane in a sub-tree
  * called "PolySwarm Results."
- * 
+ *
  */
 public class SwarmItController {
     private static final Logger LOGGER = Logger.getLogger(SwarmItController.class.getName());
-    
+
     private final Case autopsyCase;
     private final SwarmItMarketplaceSettings apiSettings;
     private final SwarmItDb dbInstance;
@@ -93,33 +93,33 @@ public class SwarmItController {
     public Case getAutopsyCase() {
         return autopsyCase;
     }
-    
+
     SwarmItController(Case newCase) throws TskCoreException, SwarmItDbException {
         this.autopsyCase = Objects.requireNonNull(newCase);
         this.apiSettings = new SwarmItMarketplaceSettings();
         this.dbInstance = SwarmItDb.getInstance();
-        
+
         dbExecutor = getNewDBExecutor();
         createCustomArtifactType(this.autopsyCase);
         dbExecutor.scheduleAtFixedRate(new ResolvePendingSubmissionsTask(this.dbInstance, this.autopsyCase), 0, 30, TimeUnit.SECONDS);
     }
-    
+
     /**
      * Create the POLYSWARM_VERDICT custom artifact type and add it to the blackboard.
-     * 
+     *
      * @param autopsyCase Open Case
      */
     private void createCustomArtifactType(Case autopsyCase) {
         try {
             if (autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME) == null) {
-                LOGGER.log(Level.INFO, "Adding POLYSWARM_VERDICT custom artifact type"); 
+                LOGGER.log(Level.INFO, "Adding POLYSWARM_VERDICT custom artifact type");
                 autopsyCase.getSleuthkitCase().addBlackboardArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
             }
         } catch (TskCoreException | TskDataException ex) {
             LOGGER.log(Level.SEVERE, "Failed to create POLYSWARM_VERDICT custom artifact type", ex);
         }
     }
-    
+
     public void reset() {
         try {
             // close all connections to the REST API and db.
@@ -130,7 +130,7 @@ public class SwarmItController {
             LOGGER.log(Level.SEVERE, "Failed to shutdown database connections.", ex); // NON-NLS
         }
     }
-    
+
     synchronized private void shutDownDBExecutor() {
         if (dbExecutor != null) {
             dbExecutor.shutdownNow();
@@ -229,7 +229,7 @@ public class SwarmItController {
         final BlackboardAttribute assertionsBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
                                 SwarmItModule.getModuleName(),
                                 POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_NONMALICIOUS);
-        
+
         private ProgressHandle progressHandle;
 
         public SwarmItDb getDbInstance() {
@@ -254,7 +254,7 @@ public class SwarmItController {
             try {
                 // check pending submissions db for any entries
                 List<SwarmItPendingSubmission> pList = getDbInstance().getPendingSubmissions();
-                
+
                 if (pList.isEmpty()) {
                     LOGGER.log(Level.INFO, "No pending submissions found.");
                     return;
@@ -263,13 +263,12 @@ public class SwarmItController {
                 progressHandle.switchToDeterminate(pList.size());
                 updateProgress(0.0);
                 int workDone = 0;
-                
 
                 // for each pending submission entry, contact API to get status info
                 for (SwarmItPendingSubmission pSub : pList) {
                     JSONObject statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
                     SwarmItVerdict verdict = SwarmItApiClient.getVerdict(statusResult);
-                    
+
                     try {
                         // do lookup for abstractFile ID in the current case
                         AbstractFile af = autopsyCase.getSleuthkitCase().getAbstractFileById(pSub.getAbstractFileID());
@@ -284,14 +283,16 @@ public class SwarmItController {
                         } else {
                             artifact = artifacts.get(0);
                         }
-                        
+
                         // Add the verdicts when they don't already exist, aren't null or unknown
+                        addInfoArtifact(verdict.getFileHash(), "Hash: %s", artifact);
+                        addInfoArtifact(verdict.getBountyGuid(), "Bounty: %s", artifact);
                         addArtifact(verdict.getAssertionsVerdict(), null, artifact, assertionsBenign, assertionsMalicious);
                         addArtifact(verdict.getVotesVerdict(), null, artifact, votesBenign, votesMalicious);
                         addArtifact(verdict.getQuorumVerdict(), af, artifact, quorumBenign, quorumMalicious);
-                        
+
                         // notify UI to update and display this result
-                        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(), 
+                        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(),
                                 autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME)));
 
                     } catch (TskCoreException ex) {
@@ -304,14 +305,14 @@ public class SwarmItController {
                         // delete entry from pending results db
                         getDbInstance().deletePendingSubmission(pSub);
                     }
-                        
+
                     workDone++;
                     progressHandle.progress(pSub.getSubmissionUUID(), workDone);
                     updateProgress(workDone - 1 / (double) pList.size());
                     updateMessage(pSub.getSubmissionUUID());
                 }
                 LOGGER.log(Level.INFO, "Completed processing pending submissions.");
-                
+
             } catch (SwarmItDbException ex) {
                 LOGGER.log(Level.SEVERE, "Failed to get list of pending submissions from db.",ex);
             } catch (IOException ex) {
@@ -321,13 +322,13 @@ public class SwarmItController {
 
             }
         }
-        
+
         @NbBundle.Messages({"ResolvePendingSubmissionsTask.populatingDb.status=checking verdict of submitted artifacts.",})
         ProgressHandle getInitialProgressHandle() {
             return ProgressHandle.createHandle(Bundle.ResolvePendingSubmissionsTask_populatingDb_status(), this);
         }
     }
-    
+
     public static void addArtifact(SwarmItVerdictEnum verdict, AbstractFile af, BlackboardArtifact artifact, BlackboardAttribute good, BlackboardAttribute bad) throws TskCoreException {
         // add attribute to the artifact to store the verdict
         if (verdict == null) {
@@ -355,5 +356,24 @@ public class SwarmItController {
                 // Not doing anything with error or unknown for the moment
                 break;
         }
+    }
+
+    public static void addInfoArtifact(String information, String formatString, BlackboardArtifact artifact) throws TskCoreException {
+        if (information == null) {
+            return;
+        }
+
+        String displayString = String.format(formatString, information);
+        BlackboardAttribute informationAttribute = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
+                                SwarmItModule.getModuleName(),
+                                displayString);
+        for (BlackboardAttribute attr : artifact.getAttributes()) {
+            if (attr.getDisplayString().equals(displayString)) {
+                LOGGER.log(Level.INFO, "Artifact already contains %s.", displayString);
+                return;
+            }
+        }
+
+        artifact.addAttribute(informationAttribute);
     }
 }
