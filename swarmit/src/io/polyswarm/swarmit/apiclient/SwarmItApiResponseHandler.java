@@ -38,7 +38,7 @@ public class SwarmItApiResponseHandler implements ResponseHandler<String> {
     private final static Logger LOGGER = Logger.getLogger(SwarmItApiResponseHandler.class.getName());
 
     @Override
-    public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+    public String handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, IOException {
         Integer statusCode = response.getStatusLine().getStatusCode();
         HttpEntity responseEntity = response.getEntity();
         String responseString = null;
@@ -49,6 +49,10 @@ public class SwarmItApiResponseHandler implements ResponseHandler<String> {
         if (statusCode == 200) {
             return responseString;
 
+        } else if (statusCode == 401) {
+            throw new NotAuthorizedException(responseString);
+        } else if (statusCode == 400) {
+            throw new BadRequestException(responseString);
         } else {
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }

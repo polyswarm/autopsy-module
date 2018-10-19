@@ -119,7 +119,7 @@ public class SwarmItApiClient {
      *
      * @throws IOException
      */
-    public static JSONObject getSubmissionStatus(String uuid) throws IOException, ClientProtocolException {
+    public static JSONObject getSubmissionStatus(String uuid) throws IOException, BadRequestException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
 
@@ -134,6 +134,12 @@ public class SwarmItApiClient {
         } catch (URISyntaxException ex) {
             LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
             throw new IOException(ex);
+        } catch (NotAuthorizedException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
+            throw new IOException(ex);
+        } catch (BadRequestException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid UUID.", ex);
+            throw new BadRequestException(ex.getMessage());
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, "Error executing query.", ex);
             throw new IOException(ex);
