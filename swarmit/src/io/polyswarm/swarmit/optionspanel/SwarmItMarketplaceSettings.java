@@ -163,19 +163,13 @@ public final class SwarmItMarketplaceSettings {
     /**
      * Set the new API Key and test if it's valid.
      * 
-     * NOTE: API Key is not used in the current version.
-     * TODO: When it is used, uncomment the if test and implement
-     * some level of validation, like:
-     * - not empty
-     * - has valid api_key regex
+     * The service works with API Keys or without, depending on the setup
+     * We allow the user to clear the API key if they want
      * 
      * @param newApiKey New API Key
      * @return true if valid and set, else false
      */
     public boolean setApiKey(String newApiKey) {
-        if (newApiKey.isEmpty()) {
-            return false;
-        }
         apiKey = newApiKey;
         return true;
     }
