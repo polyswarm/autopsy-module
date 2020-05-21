@@ -26,7 +26,7 @@ At this point you just need an API key to get started.
 ## Get Your API Key
 
 The PolySwarm Autopsy Module requires an API Key to get valid responses from PolySwarm.
-You can get an API key from [PolySwarm](https://polyswarm.network)
+You can get an API key from PolySwarm at [https://polyswarm.network](https://polyswarm.network)
 
 1. Sign up for an account with PolySwarm on polyswarm.network
 1. Optionally create a team if working together with others.
@@ -47,14 +47,13 @@ You should now be ready to use the PolySwarm Autopsy Module
 
 Scanning files requires an open Case, with some files.
 
-Simply right click the intended file, and click `Scan on PolySwarm`.
+Right click the intended file, and click `Scan on PolySwarm`.
 This will send the file to PolySwarm where it will be scanned.
 Scans take a minimum of 25 seconds, but the delay can increase if PolySwarm is under load.
 
 After the scan completes, a new `Extracted Content` field named `PolySwarm Results` will appear.
-Subsequent scans will increase the number to it's right.
-Click on the `PolySwarm Results` name in the tree to see results.
-This will show all the results from all the scans in this case.
+You can view details of ther scan there.
+Subsequent scans will be reported under the same `PolySwarm Results`, but as a separate result.
 
 Alternatively, you can view the results in the results tab at the bottom of the `Listing` view.
 
@@ -64,12 +63,11 @@ Alternatively, you can view the results in the results tab at the bottom of the 
 Hash Lookup requires an open Case with some files, that have been hashed.
 Specially, it requires an md5 hash to have been generated for the file already.
 
-To start a Hash Lookup simply right click the intended file, and click `Lookup Hash on PolySwarm`.
-The hash lookup should complete in a couple of seconds.
+Right click the intended file, and click `Lookup Hash on PolySwarm` to start a Hash Lookup.
+It should complete in a couple of seconds.
 
-The results form a Hash lookup are show in the `PolySwarm Results` artifact from scanning.
-The details are the same, with one exception.
-If PolySwarm has not seen the file with that hash before, it will add a not found comment.
+The results from a Hash lookup are shown in the same `PolySwarm Results` described above.
+If the file has not been seen before by PolySwarm, it will be labeled `Not Found`.
 
 ## Features
 
@@ -79,18 +77,18 @@ When an Autopsy case is open and has ingested files, two new options show up on 
 
 ### Custom artifact type
 
-Results from PolySwarm are shown in a new leaf in the tree under `Extracted Content` call `PolySwarmResults`.
+Results from PolySwarm are shown in a new leaf in the tree under `Extracted Content` called `PolySwarm Results`.
 Each scan/hash lookup creates new artifact under that heading, so past results are isolated and immutable.
 
 ### PolyScore™
 
 All scans and hash searches now include the PolyScore.
-Find out more about PolyScore on `https://polyswarm.network`.
+Find out more about PolyScore on [https://polyswarm.network](https://polyswarm.network).
 
 ### Assertions
 
-Received a list of all assertions un Author:verdict pairs.
-No guesswork why PolySwarm deemed a file malicious.
+All assertions are displayed as a list of `author, verdict` pairs.
+No more guesswork why PolySwarm in figuring out if a file is malicious.
 
 ### Malware Families
 
@@ -98,8 +96,8 @@ Displays a list of malware families that engines have provided with their assert
 
 ### Tags
 
-Get tags PolySwarm has added to kickstart analysis.
+Presents tags that PolySwarm has identified to kickstart analysis.
 
 ### Known bad
 
-The PolySwarm Autopsy Module will mark files  as `Known Bad` based on PolyScore and Assertion results
+Marks malicious files as `Known Bad` based on PolyScore and Assertion results.
