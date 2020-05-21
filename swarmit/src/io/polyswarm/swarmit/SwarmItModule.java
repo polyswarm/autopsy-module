@@ -63,7 +63,7 @@ public class SwarmItModule {
         Case.addPropertyChangeListener(new CaseEventListener());
     }
 
-    static String getModuleName() {
+    public static String getModuleName() {
         return MODULE_NAME;
     }
 

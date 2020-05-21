@@ -23,7 +23,6 @@
  */
 package io.polyswarm.swarmit.optionspanel;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -61,19 +60,23 @@ final class SwarmItPanel extends javax.swing.JPanel {
         apiKeyPanel = new javax.swing.JPanel();
         apiKeyErrorMsgLabel = new javax.swing.JLabel();
         apiKeyTextField = new javax.swing.JTextField();
-        nctAmountPanel = new javax.swing.JPanel();
-        defaultNctAmountTextField = new javax.swing.JTextField();
-        nctAmountUnitLabel = new javax.swing.JLabel();
-        nctAmountErrorMsgLabel = new javax.swing.JLabel();
         testConnectionButtonPanel = new javax.swing.JPanel();
         testButton = new javax.swing.JButton();
         testConnectionStatusLabel = new javax.swing.JLabel();
+        communityPanel = new javax.swing.JPanel();
+        communityErrorMsgLabel = new javax.swing.JLabel();
+        communityTextField = new javax.swing.JTextField();
 
         apiUrlPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
 
         apiUrlTextField.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
         apiUrlTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTextField.text")); // NOI18N
         apiUrlTextField.setToolTipText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.apiUrlTextField.toolTipText")); // NOI18N
+        apiUrlTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                apiUrlTextFieldActionPerformed(evt);
+            }
+        });
 
         apiUrlErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         apiUrlErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
@@ -116,8 +119,8 @@ final class SwarmItPanel extends javax.swing.JPanel {
             .addGroup(apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         apiKeyPanelLayout.setVerticalGroup(
@@ -128,45 +131,6 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(16, Short.MAX_VALUE))
-        );
-
-        nctAmountPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.nctAmountTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
-
-        defaultNctAmountTextField.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
-        defaultNctAmountTextField.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        defaultNctAmountTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.defaultNctAmountTextField.text")); // NOI18N
-
-        nctAmountUnitLabel.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
-        org.openide.awt.Mnemonics.setLocalizedText(nctAmountUnitLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.nctAmountUnitLabel.text")); // NOI18N
-
-        nctAmountErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        nctAmountErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
-        org.openide.awt.Mnemonics.setLocalizedText(nctAmountErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.nctAmountErrorMsgLabel.text")); // NOI18N
-
-        javax.swing.GroupLayout nctAmountPanelLayout = new javax.swing.GroupLayout(nctAmountPanel);
-        nctAmountPanel.setLayout(nctAmountPanelLayout);
-        nctAmountPanelLayout.setHorizontalGroup(
-            nctAmountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(nctAmountPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(nctAmountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(nctAmountPanelLayout.createSequentialGroup()
-                        .addComponent(defaultNctAmountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(nctAmountUnitLabel))
-                    .addComponent(nctAmountErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        nctAmountPanelLayout.setVerticalGroup(
-            nctAmountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(nctAmountPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(nctAmountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(nctAmountUnitLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(defaultNctAmountTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(nctAmountErrorMsgLabel)
-                .addContainerGap())
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(testButton, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.testButton.text")); // NOI18N
@@ -199,6 +163,36 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
 
+        communityPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.communityPanel.border.title"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
+        communityPanel.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
+
+        communityErrorMsgLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        communityErrorMsgLabel.setForeground(new java.awt.Color(255, 0, 0));
+        org.openide.awt.Mnemonics.setLocalizedText(communityErrorMsgLabel, org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.communityErrorMsgLabel.text")); // NOI18N
+
+        communityTextField.setText(org.openide.util.NbBundle.getMessage(SwarmItPanel.class, "SwarmItPanel.communityTextField.text")); // NOI18N
+
+        javax.swing.GroupLayout communityPanelLayout = new javax.swing.GroupLayout(communityPanel);
+        communityPanel.setLayout(communityPanelLayout);
+        communityPanelLayout.setHorizontalGroup(
+            communityPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(communityPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(communityPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(communityErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(communityTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        communityPanelLayout.setVerticalGroup(
+            communityPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, communityPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(communityTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(communityErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(16, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -207,9 +201,9 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addGap(26, 26, 26)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(apiUrlPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(nctAmountPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(apiKeyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(apiKeyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(communityPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -218,9 +212,9 @@ final class SwarmItPanel extends javax.swing.JPanel {
                 .addGap(30, 30, 30)
                 .addComponent(apiUrlPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(communityPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(nctAmountPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(35, 35, 35))
@@ -246,21 +240,20 @@ final class SwarmItPanel extends javax.swing.JPanel {
         controller.changed();
     }//GEN-LAST:event_testButtonActionPerformed
 
+    private void apiUrlTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_apiUrlTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_apiUrlTextFieldActionPerformed
+
     private void customizeComponents() {
         // read settings and initialize GUI
-        apiKeyTextField.setText(settings.getApiKey());
+        communityTextField.setText(settings.getCommunity());
         apiUrlTextField.setText(settings.getApiUrl());
-        defaultNctAmountTextField.setText(settings.getNctAmountString());
+        apiKeyTextField.setText(settings.getApiKey());
 
         // listen to changes in form fields and call controller.changed()
+        communityTextField.getDocument().addDocumentListener(new MyDocumentListener());
         apiKeyTextField.getDocument().addDocumentListener(new MyDocumentListener());
         apiUrlTextField.getDocument().addDocumentListener(new MyDocumentListener());
-        defaultNctAmountTextField.getDocument().addDocumentListener(new MyDocumentListener());
-
-        // NOTE: We've disabled the DEFAULT NCT AMOUNT fields,
-        // since it is not currently used.
-        // TODO: remove this lineswhen it is to be used.
-        defaultNctAmountTextField.setEditable(false);
 
         connectionTestStatus = ConnectionTestResult.UNTESTED;
     }
@@ -268,8 +261,8 @@ final class SwarmItPanel extends javax.swing.JPanel {
     private void clearErrorMessages() {
         // clear default error msgs
         apiUrlErrorMsgLabel.setText("");
+        communityErrorMsgLabel.setText("");
         apiKeyErrorMsgLabel.setText("");
-        nctAmountErrorMsgLabel.setText("");
         testConnectionStatusLabel.setText("");
     }
 
@@ -305,8 +298,22 @@ final class SwarmItPanel extends javax.swing.JPanel {
      */
     boolean validApiKey() {
         boolean isValid = settings.setApiKey(apiKeyTextField.getText());
-        if (isValid == false) {
+        if (!isValid) {
             apiKeyErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.apiKeyErrorMsgLabel.text"));
+        }
+
+        return isValid;
+    }
+    
+        /**
+     * Validate the API Key. Set error message if invalid.
+     * 
+     * @return true if valid, else false
+     */
+    boolean validCommunity() {
+        boolean isValid = settings.setCommunity(communityTextField.getText());
+        if (!isValid) {
+            communityErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.communityErrorMsgLabel.text"));
         }
 
         return isValid;
@@ -319,27 +326,13 @@ final class SwarmItPanel extends javax.swing.JPanel {
      */
     boolean validURL() {
         boolean isValid = settings.setApiUrl(apiUrlTextField.getText());
-        if (isValid == false) {
+        if (!isValid) {
             apiUrlErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "SwarmItPanel.apiUrlErrorMsgLabel.text"));
         }
         
         return isValid;
     }
     
-    /**
-     * Validate the NCT amount is a positive decimal number.
-     * 
-     * @return true if valid, else false
-     */
-    @Messages({"SwarmItPanel.nctAmountErrorMsgNFE.text=NCT Amount is invalid. Must be a number greater than 0.0."})
-    boolean validNCTAmount() {
-        boolean isValid = settings.setNctAmount(defaultNctAmountTextField.getText());
-        if (isValid == false) {
-            nctAmountErrorMsgLabel.setText(Bundle.SwarmItPanel_nctAmountErrorMsgNFE_text());
-            LOGGER.log(Level.WARNING, "NCT Amount is invalid. Must be greater than 0.0.");
-        }
-        return isValid;
-    }
 
     /**
      * Validate the fields are completed correctly and that a connection test
@@ -354,13 +347,11 @@ final class SwarmItPanel extends javax.swing.JPanel {
 
         result &= validApiKey();
         result &= validURL();
-        result &= validNCTAmount();
+        result &= validCommunity();
         
         // if fields are populated correctly, enable the test button
         enableTestButton(result);
         
-        // the form is only valid after a successful test
-        result &= testedOk();
         return result;
     }
 
@@ -401,15 +392,17 @@ final class SwarmItPanel extends javax.swing.JPanel {
         
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel apiKeyErrorMsgLabel;
+    private javax.swing.JLabel apiKeyErrorMsgLabel2;
     private javax.swing.JPanel apiKeyPanel;
+    private javax.swing.JPanel apiKeyPanel2;
     private javax.swing.JTextField apiKeyTextField;
+    private javax.swing.JTextField apiKeyTextField2;
     private javax.swing.JLabel apiUrlErrorMsgLabel;
     private javax.swing.JPanel apiUrlPanel;
     private javax.swing.JTextField apiUrlTextField;
-    private javax.swing.JTextField defaultNctAmountTextField;
-    private javax.swing.JLabel nctAmountErrorMsgLabel;
-    private javax.swing.JPanel nctAmountPanel;
-    private javax.swing.JLabel nctAmountUnitLabel;
+    private javax.swing.JLabel communityErrorMsgLabel;
+    private javax.swing.JPanel communityPanel;
+    private javax.swing.JTextField communityTextField;
     private javax.swing.JButton testButton;
     private javax.swing.JPanel testConnectionButtonPanel;
     private javax.swing.JLabel testConnectionStatusLabel;

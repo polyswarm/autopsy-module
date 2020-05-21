@@ -10,11 +10,14 @@ How to setup a development environment is covered here: https://sleuthkit.org/au
 
 Autopsy uses Java 8, so get the Windows x64 JDK.
 
+You must create an Oracle account to get access to Java 8 JDk.
+While some pages indicate it may cost money to access older JDK downloads, but Java 8 is free.
+
 https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 
 ## Install Autopsy
 
-Since we are only building a module, we do not need to compile/build the autopsy/tsk source. We can simply install the latest version of Autopsy and use the Platform that it comes with. I've been using Autopsy 4.8.0 64bit for windows. I installed it with the .msi. If you want any of the Autopsy source code for easy browsing in NetBeans, then you can also grab the .zip.
+Since we are only building a module, we do not need to compile/build the autopsy/tsk source. We can simply install the latest version of Autopsy and use the Platform that it comes with. I've been using Autopsy 4.15.0 64bit for windows. I installed it with the .msi. If you want any of the Autopsy source code for easy browsing in NetBeans, then you can also grab the .zip.
 
 Let it install into the default path.
 
@@ -25,6 +28,12 @@ https://www.sleuthkit.org/autopsy/download.php
 Autopsy is all NetBeans all day, so install the latest version of NetBeans. I've been using version 8.2 Java EE variant.
 
 https://netbeans.org/downloads/
+
+### Tips and Tricks
+
+You may want to download the latest Java JDK in addition to Java 8. Run NetBeans in the latest Java, while the project is set to Java 8.
+
+The Netbeans executable Installer does not work with Java 14, so you will need to download the zip in that case.
 
 ## Install Git Client
 
@@ -39,6 +48,11 @@ Clone this repo to your dev box.
 ## Open this project in NetBeans
 
 When you open NetBeans, choose to open an existing project and select the swarmit subdir.
+
+### Tips and Tricks
+
+If you find NetBeans stuck at the `Initializing Project` state, delete the cache to load.
+The cache can be found in %USERPROFILE$/AppData/Local/NetBeans/Cache
 
 ## Set Autopsy as NetBeans Platform
 

@@ -26,40 +26,19 @@ package io.polyswarm.swarmit;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.polyswarm.swarmit.apiclient.BadRequestException;
-import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
-import io.polyswarm.swarmit.apiclient.SwarmItVerdict;
-import io.polyswarm.swarmit.apiclient.SwarmItVerdictEnum;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
-import io.polyswarm.swarmit.datamodel.SwarmItPendingSubmission;
 import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
-import java.io.IOException;
-import java.util.List;
+import io.polyswarm.swarmit.tasks.ProcessPendingTask;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.concurrent.Worker;
-import org.apache.http.client.ClientProtocolException;
-import org.json.JSONObject;
-import org.netbeans.api.progress.ProgressHandle;
-import org.openide.util.Cancellable;
-import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
-import org.sleuthkit.autopsy.ingest.IngestServices;
-import org.sleuthkit.autopsy.ingest.ModuleDataEvent;
-import org.sleuthkit.datamodel.AbstractFile;
-import org.sleuthkit.datamodel.BlackboardArtifact;
 import org.sleuthkit.datamodel.BlackboardAttribute;
+import org.sleuthkit.datamodel.BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE;
 import org.sleuthkit.datamodel.TskCoreException;
-import org.sleuthkit.datamodel.TskData;
 import org.sleuthkit.datamodel.TskDataException;
 
 /**
@@ -83,15 +62,30 @@ public class SwarmItController {
     private final SwarmItMarketplaceSettings apiSettings;
     private final SwarmItDb dbInstance;
     private ListeningScheduledExecutorService dbExecutor;
-    private static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_VERDICT";
-    private static final String POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME = "PolySwarm Results";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_MALICIOUS = "Quorum: Malicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_NONMALICIOUS = "Quorum: NonMalicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_MALICIOUS = "Assertions: Malicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_NONMALICIOUS = "Assertions: NonMalicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_MALICIOUS = "Votes: Malicious";
-    private static final String POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_NONMALICIOUS = "Votes: NonMalicious";
-
+    public static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_RESULTS";
+    public static final String POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME = "PolySwarm Results";
+    public static final String POLYSWARM_ARTIFACT_TYPE_ASSERTIONS_NAME = "POLYSWARM_ASSERTIONS";
+    public static final String POLYSWARM_ARTIFACT_TYPE_ASSERTIONS_DISPLAY_NAME = "PolySwarm Assertions";
+    public static final String POLYSWARM_ARTIFACT_TYPE_TAGS_NAME = "POLYSWARM_TAGS";
+    public static final String POLYSWARM_ARTIFACT_TYPE_TAGS_DISPLAY_NAME = "PolySwarm Tags";
+    public static final String POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_NAME = "POLYSWARM_MALWARE_FAMILIES";
+    public static final String POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_DISPLAY_NAME = "PolySwarm Malware Families";
+    
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME = "POLYSWARM_MALICIOUS_DETECTIONS";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_DISPLAY = "Malicious Detections";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME = "POLYSWARM_BENIGN_DETECTIONS";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_DISPLAY = "Benign Detections";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME = "POLYSWARM_TOTAL_DETECTIONS";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_DISPLAY = "Total Detections";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME = "POLYSWARM_MALWARE_FAMILY";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_DISPLAY = "Malware Family";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME = "POLYSWARM_POLYSCORE_STRING";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DISPLAY = "PolyScore\u2122";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME = "POLYSWARM_TAG";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY = "Tag";
+    
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT = "POLYSWARM_%s";
+    
     public Case getAutopsyCase() {
         return autopsyCase;
     }
@@ -102,8 +96,15 @@ public class SwarmItController {
         this.dbInstance = SwarmItDb.getInstance();
 
         dbExecutor = getNewDBExecutor();
-        createCustomArtifactType(this.autopsyCase);
-        dbExecutor.scheduleAtFixedRate(new ResolvePendingSubmissionsTask(this.dbInstance, this.autopsyCase), 0, 30, TimeUnit.SECONDS);
+        createCustomArtifactTypes(this.autopsyCase);
+        createCustomArtifactAttributes(this.autopsyCase);
+        dbExecutor.scheduleAtFixedRate(new ProcessPendingTask(this.dbInstance, this.autopsyCase), 0, 2, TimeUnit.SECONDS);
+    }
+    
+    private static void createCustomArtifactTypes(Case autopsyCase) {
+        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
+        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_TAGS_NAME, POLYSWARM_ARTIFACT_TYPE_TAGS_DISPLAY_NAME);
+        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_NAME, POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_DISPLAY_NAME);
     }
 
     /**
@@ -111,14 +112,33 @@ public class SwarmItController {
      *
      * @param autopsyCase Open Case
      */
-    private void createCustomArtifactType(Case autopsyCase) {
+    private static void createCustomArtifactType(Case autopsyCase, String name, String display) {
         try {
-            if (autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME) == null) {
+            if (autopsyCase.getSleuthkitCase().getArtifactType(name) == null) {
                 LOGGER.log(Level.INFO, "Adding POLYSWARM_VERDICT custom artifact type");
-                autopsyCase.getSleuthkitCase().addBlackboardArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
+                autopsyCase.getSleuthkitCase().addBlackboardArtifactType(name, display);
             }
         } catch (TskCoreException | TskDataException ex) {
             LOGGER.log(Level.SEVERE, "Failed to create POLYSWARM_VERDICT custom artifact type", ex);
+        }
+    }
+    
+    private static void createCustomArtifactAttributes(Case autopsyCase) {
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.INTEGER, POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_DISPLAY);
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.INTEGER, POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_DISPLAY);
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.INTEGER, POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_DISPLAY);
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DISPLAY);
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_DISPLAY);
+            createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY);
+    }
+    
+    public static void createCustomArtifactAttribute(Case autopsyCase, String name, TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE valueType, String display) {
+        try {
+            if (autopsyCase.getSleuthkitCase().getAttributeType(name) == null) {
+                autopsyCase.getSleuthkitCase().addArtifactAttributeType(name, valueType, display);
+            }
+        }  catch (TskCoreException | TskDataException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to create custom artifact attribute type", ex);
         }
     }
 
@@ -147,243 +167,5 @@ public class SwarmItController {
     private static ListeningScheduledExecutorService getNewDBExecutor() {
         return MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(
                 new ThreadFactoryBuilder().setNameFormat("SwarmIt-DB-Worker-Thread-%d").build()));
-    }
-
-    /**
-     * Abstract base class for tasks
-     */
-    @NbBundle.Messages({"SwarmItController.InnerTask.progress.name=progress",
-        "SwarmItController.InnerTask.message.name=status"})
-    static public abstract class BackgroundTask implements Runnable, Cancellable {
-
-        private final SimpleObjectProperty<Worker.State> state = new SimpleObjectProperty<>(Worker.State.READY);
-        private final SimpleDoubleProperty progress = new SimpleDoubleProperty(this, Bundle.SwarmItController_InnerTask_progress_name());
-        private final SimpleStringProperty message = new SimpleStringProperty(this, Bundle.SwarmItController_InnerTask_message_name());
-
-        protected BackgroundTask() {
-        }
-
-        public double getProgress() {
-            return progress.get();
-        }
-
-        public final void updateProgress(Double workDone) {
-            this.progress.set(workDone);
-        }
-
-        public String getMessage() {
-            return message.get();
-        }
-
-        public final void updateMessage(String Status) {
-            this.message.set(Status);
-        }
-
-        public SimpleDoubleProperty progressProperty() {
-            return progress;
-        }
-
-        public SimpleStringProperty messageProperty() {
-            return message;
-        }
-
-        public Worker.State getState() {
-            return state.get();
-        }
-
-        public ReadOnlyObjectProperty<Worker.State> stateProperty() {
-            return new ReadOnlyObjectWrapper<>(state.get());
-        }
-
-        @Override
-        public synchronized boolean cancel() {
-            updateState(Worker.State.CANCELLED);
-            return true;
-        }
-
-        protected void updateState(Worker.State newState) {
-            state.set(newState);
-        }
-
-        protected synchronized boolean isCancelled() {
-            return getState() == Worker.State.CANCELLED;
-        }
-    }
-
-    public static class ResolvePendingSubmissionsTask extends BackgroundTask {
-        private final SwarmItDb dbInstance;
-        private final Case autopsyCase;
-        final BlackboardAttribute quorumMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                        SwarmItModule.getModuleName(),
-                                        POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_MALICIOUS);
-        final BlackboardAttribute quorumBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                POLYSWARM_ARTIFACT_ATTRIBUTE_QUORUM_NONMALICIOUS);
-        final BlackboardAttribute votesMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_MALICIOUS);
-        final BlackboardAttribute votesBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                POLYSWARM_ARTIFACT_ATTRIBUTE_VOTES_NONMALICIOUS);
-        final BlackboardAttribute assertionsMalicious = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_MALICIOUS);
-        final BlackboardAttribute assertionsBenign = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTIONS_NONMALICIOUS);
-
-        private ProgressHandle progressHandle;
-
-        public SwarmItDb getDbInstance() {
-            return dbInstance;
-        }
-
-        public Case getAutopsyCase() {
-            return autopsyCase;
-        }
-
-        ResolvePendingSubmissionsTask(SwarmItDb dbInstance, Case autopsyCase) {
-            super();
-            this.dbInstance = dbInstance;
-            this.autopsyCase = autopsyCase;
-        }
-
-        @Override
-        public void run() {
-            progressHandle = getInitialProgressHandle();
-            progressHandle.start();
-
-            try {
-                // check pending submissions db for any entries
-                List<SwarmItPendingSubmission> pList = getDbInstance().getPendingSubmissions();
-
-                if (pList.isEmpty()) {
-                    LOGGER.log(Level.INFO, "No pending submissions found.");
-                    return;
-                }
-                LOGGER.log(Level.INFO, "Found {0} pending submissions. Starting lookup...", pList.size());
-                progressHandle.switchToDeterminate(pList.size());
-                updateProgress(0.0);
-                int workDone = 0;
-
-                // for each pending submission entry, contact API to get status info
-                for (SwarmItPendingSubmission pSub : pList) {
-                    JSONObject statusResult;
-                    try {
-                        statusResult = SwarmItApiClient.getSubmissionStatus(pSub.getSubmissionUUID());
-                    } catch (BadRequestException e) {
-                        // This uuid is no longer available on the service. remove. (redis reset)
-                        LOGGER.log(Level.INFO, "Submission {0} is not available. Removing.", pSub.getSubmissionUUID());
-                        getDbInstance().deletePendingSubmission(pSub);
-                        continue;
-                    }
-                    SwarmItVerdict verdict = SwarmItApiClient.getVerdict(statusResult);
-
-                    try {
-                        // do lookup for abstractFile ID in the current case
-                        AbstractFile af = autopsyCase.getSleuthkitCase().getAbstractFileById(pSub.getAbstractFileID());
-
-                        List<BlackboardArtifact> artifacts = af.getArtifacts(POLYSWARM_ARTIFACT_TYPE_NAME);
-
-                        BlackboardArtifact artifact;
-                        if (artifacts.isEmpty()) {
-                            // add PolySwarm custom artifact to abstractFile
-                            artifact = af.newArtifact(autopsyCase.getSleuthkitCase()
-                                .getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME).getTypeID());
-                        } else {
-                            artifact = artifacts.get(0);
-                        }
-
-                        // Add the verdicts when they don't already exist, aren't null or unknown
-                        addInfoArtifact(verdict.getFileHash(), "Hash: %s", artifact);
-                        addInfoArtifact(verdict.getBountyGuid(), "Bounty: %s", artifact);
-                        addArtifact(verdict.getAssertionsVerdict(), null, artifact, assertionsBenign, assertionsMalicious);
-                        addArtifact(verdict.getVotesVerdict(), null, artifact, votesBenign, votesMalicious);
-                        addArtifact(verdict.getQuorumVerdict(), af, artifact, quorumBenign, quorumMalicious);
-
-                        // notify UI to update and display this result
-                        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(),
-                                autopsyCase.getSleuthkitCase().getArtifactType(POLYSWARM_ARTIFACT_TYPE_NAME)));
-
-                    } catch (TskCoreException ex) {
-                        LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
-                    }
-
-                    // If it hasn't been settled/quorum reached, don't delete it. We want more info.
-                    SwarmItVerdictEnum votes = verdict.getVotesVerdict();
-                    if (votes != null && votes != SwarmItVerdictEnum.UNKNOWN) {
-                        // delete entry from pending results db
-                        getDbInstance().deletePendingSubmission(pSub);
-                    }
-
-                    workDone++;
-                    progressHandle.progress(pSub.getSubmissionUUID(), workDone);
-                    updateProgress(workDone - 1 / (double) pList.size());
-                    updateMessage(pSub.getSubmissionUUID());
-                }
-                LOGGER.log(Level.INFO, "Completed processing pending submissions.");
-
-            } catch (SwarmItDbException ex) {
-                LOGGER.log(Level.SEVERE, "Failed to get list of pending submissions from db.",ex);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Failed to get status for submission.", ex);
-            } finally {
-                progressHandle.finish();
-
-            }
-        }
-
-        @NbBundle.Messages({"ResolvePendingSubmissionsTask.populatingDb.status=checking verdict of submitted artifacts.",})
-        ProgressHandle getInitialProgressHandle() {
-            return ProgressHandle.createHandle(Bundle.ResolvePendingSubmissionsTask_populatingDb_status(), this);
-        }
-    }
-
-    public static void addArtifact(SwarmItVerdictEnum verdict, AbstractFile af, BlackboardArtifact artifact, BlackboardAttribute good, BlackboardAttribute bad) throws TskCoreException {
-        // add attribute to the artifact to store the verdict
-        if (verdict == null) {
-            LOGGER.log(Level.INFO, "Verdict has not come in yet.");
-            return;
-        }
-        if (artifact.getAttributes().contains(good) || artifact.getAttributes().contains(bad)) {
-            LOGGER.log(Level.INFO, "Artifact already contains this verdict.");
-            return;
-        }
-        switch (verdict) {
-            case MALICIOUS:
-                LOGGER.log(Level.INFO, "File identified as malicious.");
-                artifact.addAttribute(bad);
-                // We only mark known bad if quorum reached on malicious
-                if (af != null) {
-                    af.setKnown(TskData.FileKnown.BAD);
-                }
-                break;
-            case BENIGN:
-                LOGGER.log(Level.INFO, "File identified as non malicious.");
-                artifact.addAttribute(good);
-                break;
-            default:
-                // Not doing anything with error or unknown for the moment
-                break;
-        }
-    }
-
-    public static void addInfoArtifact(String information, String formatString, BlackboardArtifact artifact) throws TskCoreException {
-        if (information == null) {
-            return;
-        }
-
-        String displayString = String.format(formatString, information);
-        BlackboardAttribute informationAttribute = new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT,
-                                SwarmItModule.getModuleName(),
-                                displayString);
-        for (BlackboardAttribute attr : artifact.getAttributes()) {
-            if (attr.getDisplayString().equals(displayString)) {
-                LOGGER.log(Level.INFO, "Artifact already contains %s.", displayString);
-                return;
-            }
-        }
-
-        artifact.addAttribute(informationAttribute);
     }
 }
