@@ -105,7 +105,7 @@ public final class SwarmItMarketplaceSettings {
      * @throws URISyntaxException
      */
     public String getStatusUrl() throws URISyntaxException {
-        return apiUrl.concat(String.format("consumer/community/%s/status", getCommunity()));
+        return getApiUrl().concat(String.format("consumer/community/%s/status", getCommunity()));
     }
 
     public String getApiKey() {
