@@ -59,7 +59,7 @@ public class PendingHashLookup extends PendingTask {
     }
 
     public String getMd5Hash() {
-        return md5Hash
+        return md5Hash;
     }
 
     public long getAbstractFileId() {

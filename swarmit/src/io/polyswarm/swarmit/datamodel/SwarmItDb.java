@@ -557,8 +557,8 @@ public class SwarmItDb {
             String sql = "DELETE from pending_hashes WHERE abstract_file_id=? AND md5_hash=?";
             try {
                 preparedStatement = conn.prepareStatement(sql);
-                preparedStatement.setLong(1, pendingHashLookup.getAbstractFileId();
-                preparedStatement.setString(2, pendingHashLookup.getMd5Hash();
+                preparedStatement.setLong(1, pendingHashLookup.getAbstractFileId());
+                preparedStatement.setString(2, pendingHashLookup.getMd5Hash());
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
                 throw new SwarmItDbException("Error deleteing pending hash look up: " + pendingHashLookup.toString(), ex); // NON-NLS
