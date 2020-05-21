@@ -35,12 +35,12 @@ import org.sleuthkit.autopsy.coreutils.ModuleSettings;
  * Manage settings for the connection to the PolySwarm marketplace
  */
 public final class SwarmItMarketplaceSettings {
-    
-    
+
+
     private final static Logger LOGGER = Logger.getLogger(SwarmItMarketplaceSettings.class.getName());
     private final String DEFAULT_API_KEY = ""; // NON-NLS
     private final String DEFAULT_URL = "https://api.polyswarm.network/v2"; // NON-NLS
-    private final String DEFAULT_COMMUNITY = "omicron"; // NON-NLS
+    private final String DEFAULT_COMMUNITY = "default"; // NON-NLS
     private final String API_STATUS_ENDPOINT = "status"; // NON-NLS
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
     private final String SETTINGS_TAG_API_URL = "polyswarm.url"; // NON-NLS
@@ -49,11 +49,11 @@ public final class SwarmItMarketplaceSettings {
     private String apiUrl;
     private String apiKey;
     private String community;
-    
+
     public SwarmItMarketplaceSettings() {
         loadSettings();
     }
-    
+
     /**
      * Read the settings from the module's config. If any are missing, set to defaults.
      */
@@ -62,19 +62,19 @@ public final class SwarmItMarketplaceSettings {
         if (apiUrl == null || apiUrl.isEmpty()) {
             apiUrl = DEFAULT_URL;
         }
-        
+
         apiKey = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
         if (apiKey == null || apiKey.isEmpty()) {
             apiKey = DEFAULT_API_KEY;
         }
-        
+
         community = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY);
         if (community == null || community.isEmpty()) {
             community = DEFAULT_COMMUNITY;
         }
     }
 
-    public void saveSettings() {        
+    public void saveSettings() {
         ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL, getApiUrl());
         ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY, getApiKey());
         ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, getCommunity());
@@ -83,48 +83,48 @@ public final class SwarmItMarketplaceSettings {
     public boolean testSettings() {
         return ApiClientV2.testConnection(this).passed;
     }
-    
+
     public boolean isChanged() {
         String urlString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL);
         String jsonString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
-        
+
         return !getApiUrl().equals(urlString)
                 || !getApiKey().equals(jsonString);
     }
-    
+
     public String getApiUrl() {
         return apiUrl;
     }
 
     /**
      * Get the URI object containing the URI for the status endpoint.
-     * 
+     *
      * The status endpoint is /status
-     * 
+     *
      * @return URI object
-     * @throws URISyntaxException 
+     * @throws URISyntaxException
      */
     public String getStatusUrl() throws URISyntaxException {
         return apiUrl.concat(String.format("consumer/community/%s/status", getCommunity()));
     }
-    
+
     public String getApiKey() {
         return apiKey;
     }
-    
+
     public String getCommunity() {
         return community;
     }
-    
+
     /**
      * Set the new URL and test if it's a valid URI.
      * If valid, save it to this instance.
-     * 
+     *
      * @param newUrl New URL
      * @return  true if valid and set, else false
      */
     public boolean setApiUrl(String newUrl) {
-        
+
         if (!newUrl.isEmpty()) {
             try {
                 apiUrl = newUrl;
@@ -143,10 +143,10 @@ public final class SwarmItMarketplaceSettings {
 
     /**
      * Set the new API Key and test if it's valid.
-     * 
+     *
      * The service works with API Keys or without, depending on the setup
      * We allow the user to clear the API key if they want
-     * 
+     *
      * @param newApiKey New API Key
      * @return true if valid and set, else false
      */
@@ -154,7 +154,7 @@ public final class SwarmItMarketplaceSettings {
         apiKey = newApiKey;
         return true;
     }
-    
+
     public boolean setCommunity(String newCommunity) {
         if (newCommunity != null && !newCommunity.isEmpty()) {
             community = newCommunity;
