@@ -37,19 +37,16 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 /**
- *
- * @author rl
+ * Makes a request to check on an active scan
  */
-
-
 public class ArtifactSubmissionStatusRequest  implements Request<ArtifactInstance> {
     private final static Logger LOGGER = Logger.getLogger(ArtifactSubmissionStatusRequest.class.getName());
     String submissionId;
-    
+
     public ArtifactSubmissionStatusRequest(String submissionId) {
         this.submissionId = submissionId;
     }
-    
+
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

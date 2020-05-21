@@ -27,33 +27,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- *
- * @author rl
+ * Represents an assertion from an engine
  */
-
-
 public class Assertion {
     public final String name;
     public final boolean mask;
     public final boolean verdict;
     public final String malwareFamily;
-    
+
     public Assertion(String name, boolean mask, boolean verdict, String malwareFamily) {
         this.name = name;
         this.mask = mask;
         this.verdict = verdict;
         this.malwareFamily = malwareFamily;
     }
-    
+
     public Assertion(JSONObject assertion) throws JSONException {
         name = assertion.getString("author_name");
         mask = assertion.getBoolean("mask");
         verdict = assertion.getBoolean("verdict");
-        
+
         JSONObject metadata = assertion.getJSONObject("metadata");
         malwareFamily = metadata.getString("malware_family");
     }
-    
+
+    /**
+     * Gives meaning to true/false by writing what it out
+     */
     public String getHumanReadableVerdict() {
         return verdict ? "Malicious" : "Benign";
     }

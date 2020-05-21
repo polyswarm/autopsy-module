@@ -40,13 +40,13 @@ import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.TskCoreException;
 
 /**
- * Class to hold details about a pending submission
+ * Pending task to submit a file & get results in ProcessPendingTask background task
  */
 public class PendingSubmission extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingSubmission.class.getName());
     private final String submissionId;
     private final Long abstractFileID;
-    
+
     PendingSubmission(Long abstractFileID, String uuid) {
         this.abstractFileID = abstractFileID;
         this.submissionId = uuid;
@@ -65,13 +65,25 @@ public class PendingSubmission extends PendingTask {
     public Long getAbstractFileId() {
         return abstractFileID;
     }
-    
+
+    /**
+     * Uploads the file to PolySwarm, and updates the task with the submissionId
+     *
+     * @param autopsyCase open case
+     */
     public void submitFile(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.submitFile(abstractFile);
         getDbInstance().newPendingSubmissionId(abstractFileID, artifactInstance.id);
     }
 
+    /**
+     *
+     * Checks to see if a scan has finished. Fills in the ArtifactInstance if so.
+     * Also, deletes the task on successful scan completion.
+     *
+     * @param autopsyCase open case
+     */
     public void checkSubmission(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Submission {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(submissionId);
@@ -80,7 +92,7 @@ public class PendingSubmission extends PendingTask {
             // Exit if not done
             return;
         }
-        
+
         List<Tag> tags;
         try {
             tags = ApiClientV2.getTags(artifactInstance);
@@ -88,14 +100,14 @@ public class PendingSubmission extends PendingTask {
             LOGGER.log(Level.WARNING, "Failed to read tags from PolySwarm", ex);
             tags = new ArrayList<>();
         }
-                
+
         try{
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
         } finally {
             getDbInstance().deletePendingSubmission(this);
         }
     }
-    
+
     @Override
     public boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
         if (submissionId.isEmpty()) {
@@ -119,9 +131,9 @@ public class PendingSubmission extends PendingTask {
             return true;
         }
     }
-    
+
     @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", getAbstractFileId().toString(), getSubmissionId()); 
+        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", getAbstractFileId().toString(), getSubmissionId());
     }
 }

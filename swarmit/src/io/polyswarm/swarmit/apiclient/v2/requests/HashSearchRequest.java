@@ -39,23 +39,20 @@ import org.apache.http.impl.client.HttpClients;
 import org.sleuthkit.datamodel.AbstractFile;
 
 /**
- *
- * @author rl
+ * Make a request to search for the given hash
  */
-
-
 public class HashSearchRequest implements Request<ArtifactInstance> {
     private final static Logger LOGGER = Logger.getLogger(HashSearchRequest.class.getName());
     String md5Hash;
-    
+
     public HashSearchRequest(String md5Hash) {
         this.md5Hash = md5Hash;
     }
-    
+
     public HashSearchRequest(AbstractFile abstractFile) {
         this.md5Hash = abstractFile.getMd5Hash();
     }
-    
+
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException, NotFoundException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

@@ -39,6 +39,11 @@ import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.datamodel.TskCoreException;
 
+
+/**
+ * Processes all Tasks in a background thread so the UI is not blocked during file & network IO.
+ *
+ */
 public class ProcessPendingTask extends BackgroundTask {
     private static final Logger LOGGER = Logger.getLogger(ProcessPendingTask.class.getName());
     private final SwarmItDb dbInstance;
@@ -66,7 +71,7 @@ public class ProcessPendingTask extends BackgroundTask {
         progressHandle.start();
 
         try {
-            // check pending submissions db for any entries
+            // check db for any pending tasks
             List<PendingTask> pendingList = new ArrayList<>();
             pendingList.addAll(getDbInstance().getPendingHashLookups());
             pendingList.addAll(getDbInstance().getPendingSubmissions());
@@ -82,9 +87,9 @@ public class ProcessPendingTask extends BackgroundTask {
 
             // for each pending submission entry, contact API to get status info
             for (PendingTask pendingTask : pendingList) {
-                // Submit files without a submission ID
                 boolean success = false;
                 try {
+                    // allow the task to do all the work
                     success = pendingTask.process(getAutopsyCase());
                 } catch (NotAuthorizedException ex) {
                     LOGGER.log(Level.SEVERE, "Invalid API Key");
@@ -100,7 +105,7 @@ public class ProcessPendingTask extends BackgroundTask {
                     LOGGER.log(Level.SEVERE, "Failed to make request to PolySwarm", ex);
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Unexpected exception while processing task", ex);
-                } 
+                }
                 if (success) {
                     workDone++;
                     progressHandle.progress(pendingTask.toString(), workDone);
@@ -117,7 +122,7 @@ public class ProcessPendingTask extends BackgroundTask {
             progressHandle.finish();
         }
     }
-    
+
     @NbBundle.Messages({"ProcessPendingTask.populatingDb.status=Processing Requests to PolySwarm.",})
     ProgressHandle getInitialProgressHandle() {
         return ProgressHandle.createHandle(Bundle.ProcessPendingTask_populatingDb_status(), this);

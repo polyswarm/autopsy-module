@@ -29,11 +29,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
- *
- * @author rl
+ * Interface for making Requests
  */
-
-
 public interface Request<E> {
     public E makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException;
 }

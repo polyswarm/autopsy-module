@@ -40,30 +40,34 @@ import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.TskCoreException;
 
 /**
- *
- * @author rl
+ * Pending task to do a hash search in the ProcessPendingTask background task.
  */
 public class PendingHashLookup extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingHashLookup.class.getName());
     public final String md5Hash;
     public final long abstractFileId;
-    
+
     public PendingHashLookup(long abstractFileId, String md5Hash) {
         this.abstractFileId = abstractFileId;
-        this.md5Hash = md5Hash;        
+        this.md5Hash = md5Hash;
     }
-    
+
     public PendingHashLookup(AbstractFile abstractFile) {
         abstractFileId = abstractFile.getId();
         md5Hash = abstractFile.getMd5Hash();
-        
+
     }
-    
+
+    /**
+     * Makes the hash search request on PolySwarm and updates the blackboard with results, either the ArtifactInstance, or the Not Found message
+     *
+     * @param autopsyCase open case
+     */
     public void lookupHash(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Looking up Hash {0}", md5Hash);
         try {
             ArtifactInstance artifactInstance = ApiClientV2.searchHash(md5Hash);
-        
+
             LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
             if (!artifactInstance.windowClosed) {
                 // Exit if not done
@@ -76,7 +80,7 @@ public class PendingHashLookup extends PendingTask {
                 LOGGER.log(Level.WARNING, "Failed to read tags from PolySwarm", ex);
                 tags = new ArrayList<>();
             }
-            
+
             updateBlackboard(autopsyCase, abstractFileId, artifactInstance, tags);
         } catch (NotAuthorizedException ex) {
             LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
@@ -86,15 +90,15 @@ public class PendingHashLookup extends PendingTask {
             getDbInstance().deletePendingHashLookup(this);
         }
     }
-    
+
     @Override
     public boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         lookupHash(autopsyCase);
         return true;
     }
-    
+
     @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", abstractFileId, md5Hash); 
+        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", abstractFileId, md5Hash);
     }
 }

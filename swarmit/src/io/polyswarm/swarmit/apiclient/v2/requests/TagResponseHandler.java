@@ -9,7 +9,7 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+     *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  *
@@ -52,8 +52,7 @@ import java.util.ArrayList;
 import org.apache.http.HttpResponse;
 
 /**
- *
- * @author rl
+ * Parse json response with a list of tags
  */
 public class TagResponseHandler implements ResponseHandler<List<Tag>> {
     private final static Logger LOGGER = Logger.getLogger(TagResponseHandler.class.getName());
@@ -66,25 +65,31 @@ public class TagResponseHandler implements ResponseHandler<List<Tag>> {
         if (responseEntity != null) {
             responseString = EntityUtils.toString(responseEntity);
         }
-        
+
         if (statusCode / 100 == 2) {
             JSONTokener tokener = new JSONTokener(responseString);
             JSONObject output = new JSONObject(tokener);
             JSONObject result = output.getJSONObject("result");
             JSONArray jsonArray = result.getJSONArray("tags");
-            
+
             List<Tag> tags = new ArrayList<>();
             for (Object tag : jsonArray) {
                 tags.add(new Tag((String) tag));
             }
             return tags;
-                
+
         } else {
             handle4xx(statusCode, responseString);
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
-    
+
+    /**
+     * Throw exceptions based on statusCode
+     *
+     * @param statusCode Status code from PolySwarm
+     * @param responseString Response from PolySwarm as a String
+     */
     private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, ClientProtocolException {
         switch (statusCode) {
             case 400: throw new BadRequestException(responseString);

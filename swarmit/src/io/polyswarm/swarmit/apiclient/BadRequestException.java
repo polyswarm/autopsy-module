@@ -27,7 +27,6 @@ import java.io.IOException;
 
 /**
  *
- * @author Rob
  */
 public class BadRequestException extends IOException {
     /**

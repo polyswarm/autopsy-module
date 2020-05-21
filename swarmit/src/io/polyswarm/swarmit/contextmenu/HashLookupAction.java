@@ -37,18 +37,17 @@ import org.sleuthkit.datamodel.AbstractFile;
 /**
  * Adds a hash lookup action that queries polyswarm about the artifact in question
  * Update the blackboard with results from the hash lookup
- * @author rl
  */
-public class HashLookupAction extends AbstractAction {  
+public class HashLookupAction extends AbstractAction {
     private static final long serivalVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(HashLookupAction.class.getName());
     private final AbstractFile abstractFile;
-    
+
     HashLookupAction(String menuItemStr, AbstractFile abstractFile) {
         super(menuItemStr);
         this.abstractFile = abstractFile;
     }
-   
+
     @Override
     @org.openide.util.NbBundle.Messages({"HashLookupAction.submitError.message=Failed to submit hash to PolySwarm.",
         "HashLookupAction.dbError.message=Failed to record hash in pending hashes database.",
@@ -60,6 +59,9 @@ public class HashLookupAction extends AbstractAction {
         }
     }
 
+    /**
+     * Write the new hash lookup to the DB
+     */
     private void addPendingHashLookup(AbstractFile abstractFile) {
         try {
             String md5Hash = abstractFile.getMd5Hash();
@@ -75,7 +77,7 @@ public class HashLookupAction extends AbstractAction {
                 LOGGER.log(Level.INFO, "Hash is already pending, not re-submitting.");
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
                     Bundle.ScanAction_alreadyPending_message(),
-                    Bundle.ScanAction_messageDialog_title(), 
+                    Bundle.ScanAction_messageDialog_title(),
                     JOptionPane.ERROR_MESSAGE);
             }
 
@@ -83,7 +85,7 @@ public class HashLookupAction extends AbstractAction {
             LOGGER.log(Level.SEVERE, "Error adding new hash lookup to sqlite db.", ex);
             JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
                     Bundle.HashLookupAction_dbError_message(),
-                    Bundle.HashLookupAction_messageDialog_title(), 
+                    Bundle.HashLookupAction_messageDialog_title(),
                     JOptionPane.ERROR_MESSAGE);
         }
     }

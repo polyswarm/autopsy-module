@@ -42,11 +42,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- *
- * @author rl
+ * Parses an ArtifactInstance from the response to a HashSearchRequest
  */
-
-
 public class HashSearchResponseHandler implements ResponseHandler<ArtifactInstance> {
     private final static Logger LOGGER = Logger.getLogger(HashSearchResponseHandler.class.getName());
 
@@ -75,7 +72,13 @@ public class HashSearchResponseHandler implements ResponseHandler<ArtifactInstan
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
-    
+
+/**
+     * Throw exceptions based on statusCode
+     *
+     * @param statusCode Status code from PolySwarm
+     * @param responseString Response from PolySwarm as a String
+     */
     private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, ClientProtocolException {
         switch (statusCode) {
             case 400: throw new BadRequestException(responseString);

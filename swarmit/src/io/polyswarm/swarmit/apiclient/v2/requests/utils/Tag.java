@@ -24,14 +24,12 @@
 package io.polyswarm.swarmit.apiclient.v2.requests.utils;
 
 /**
+ * A tag on an ArtifactInstance
  *
- * @author rl
  */
-
-
 public class Tag {
     public final String name;
-    
+
     public Tag(String name) {
         this.name = name;
     }

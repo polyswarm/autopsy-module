@@ -24,14 +24,11 @@
 package io.polyswarm.swarmit.apiclient.v2.requests;
 
 /**
- *
- * @author rl
+ * Test results from TestRequest
  */
-
-
 public class TestResponse {
     public final boolean passed;
-    
+
     public TestResponse(boolean passed) {
         this.passed = passed;
     }

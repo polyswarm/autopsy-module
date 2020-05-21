@@ -40,12 +40,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+
 /**
- *
- * @author rl
+ * Reads an artifact instance from json response
  */
-
-
 public class ArtifactInstanceResponseHandler implements ResponseHandler<ArtifactInstance> {
     private final static Logger LOGGER = Logger.getLogger(ArtifactInstanceResponseHandler.class.getName());
 
@@ -67,7 +65,13 @@ public class ArtifactInstanceResponseHandler implements ResponseHandler<Artifact
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
-    
+
+    /**
+     * Throw exceptions based on statusCode
+     *
+     * @param statusCode Status code from PolySwarm
+     * @param responseString Response from PolySwarm as a String
+     */
     private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, NotFoundException {
         switch (statusCode) {
             case 400: throw new BadRequestException(responseString);

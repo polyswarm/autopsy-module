@@ -45,32 +45,50 @@ import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskData;
 
 /**
+ * PendingTask abstract class with helper functions for updating backingboard.
  *
- * @author rl
+ * All children classes must implement `process(Case autopsyCase)`
  */
 public abstract class PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
     public abstract boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException;
-    
+
     public SwarmItDb getDbInstance() throws SwarmItDbException {
         return SwarmItDb.getInstance();
     }
-    
+
+    /**
+     * Adds a hash not found message to the artifact
+     *
+     * @param autopsyCase open case
+     * @param abstractFileId id of the file in question
+     */
     public static void updateNotFound(Case autopsyCase, Long abstractFileId) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME);
         artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, SwarmItModule.getModuleName(), "Not Found in PolySwarm"));
     }
-    
+
+    /**
+     * Fills in all the blackboard fields under a new BlackboardArtifact.
+     * Also sets the known status of an AbstractFile
+     *
+     * Fills in the following attributes:
+     * PolyScore, Sha256, Assertions, Malware Families, Tags
+     *
+     * @param autopsyCase open case
+     * @param abstractFileId id of the file in question
+     * @param artifactInstance response from PolySwarm
+     */
     public static void updateBlackboard(Case autopsyCase, Long abstractFileId, ArtifactInstance artifactInstance, List<Tag> tags) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
-        
-        
+
+
         // Set file to known bad when polyscore > 0.7 and at least 2 malicious responses
         if (artifactInstance.detection.malicious >= 2 && Double.parseDouble(artifactInstance.polyscore) > 0.7d) {
-            abstractFile.setKnown(TskData.FileKnown.BAD);          
+            abstractFile.setKnown(TskData.FileKnown.BAD);
         }
-        
+
         // Add all results attributes
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME);
         artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, SwarmItModule.getModuleName(), artifactInstance.sha256));
@@ -79,63 +97,103 @@ public abstract class PendingTask {
         addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
         addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
         // notify UI to update and display this result
-        
+
         for (Assertion assertion : artifactInstance.assertions) {
             if (assertion.mask) {
                 addAssertion(autopsyCase, artifact, assertion);
             }
         }
-        
+
         for (Assertion assertion: artifactInstance.assertions) {
             if (!assertion.malwareFamily.isEmpty()) {
                 addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, assertion.malwareFamily);
             }
         }
-        
+
         for (Tag tag: tags) {
             addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, tag.name);
         }
-        
+
         IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(),
                                 autopsyCase.getSleuthkitCase().getArtifactType(SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME)));
     }
-    
+
+    /**
+      *
+      * Adds an assertion to the blackboard.
+      * Creates a new BlackboardAttribute.Type per assertion author
+      *
+      * @param autopsyCase open case
+      * @param artifact BlackboardArtifact to add the result
+      * @param assertion Assertion from PolySwarm
+      */
     public static void addAssertion(Case autopsyCase, BlackboardArtifact artifact, Assertion assertion) throws TskCoreException {
         String attributeName = String.format(SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT, assertion.name.toUpperCase());
         SwarmItController.createCustomArtifactAttribute(autopsyCase, attributeName, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, assertion.name);
         addArtifactAttribute(autopsyCase, artifact, attributeName, assertion.getHumanReadableVerdict());
     }
-    
+
+    /**
+     * Creates a new BlackboardArtifact and adds the the AbstractFile
+     * We create a new one each task so the results are easy to read & easy to associate
+     *
+     * @param autopsyCase Open case
+     * @param abstractFile File in in being updated
+     * @param artifactName Name of the Artifact type
+     *
+     * @return BlackboardArtifact artifact to update so it shows all together
+     */
     public static BlackboardArtifact getBlackboardArtifact(Case autopsyCase, AbstractFile abstractFile, String artifactName) throws TskCoreException {
         // New artifact per result
         return abstractFile.newArtifact(autopsyCase.getSleuthkitCase().getArtifactType(artifactName).getTypeID());
     }
-    
+
+    /**
+     * Adds a String field to the blackboard
+     *
+     * @param autopsyCase open case
+     * @param artifact BlackboardArtifact to add the result
+     * @param attributeName String name of the attribute to add the data in
+     * @param data String data to store in blackboard
+     */
     public static void addArtifactAttribute(Case autopsyCase, BlackboardArtifact artifact, String attributeName, String data) throws TskCoreException {
         BlackboardAttribute.Type attributeType = autopsyCase.getSleuthkitCase().getAttributeType(attributeName);
         if (attributeType == null) {
             return;
         }
-        
+
         artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
     }
-    
-    
+
+    /**
+     * Adds a double field to the blackboard
+     * @param autopsyCase open case
+     * @param artifact BlackboardArtifact to add the result
+     * @param attributeName String name of the attribute to add the data in
+     * @param data double data to store in blackboard
+     */
     public static void addArtifactAttribute(Case autopsyCase, BlackboardArtifact artifact, String attributeName, double data) throws TskCoreException {
         BlackboardAttribute.Type attributeType = autopsyCase.getSleuthkitCase().getAttributeType(attributeName);
         if (attributeType == null) {
             return;
         }
-        
+
         artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
     }
-    
+
+    /**
+     * Adds an int field to the blackboard
+     * @param autopsyCase open case
+     * @param artifact BlackboardArtifact to add the result
+     * @param attributeName String name of the attribute to add the data in
+     * @param data int data to store in blackboard
+     */
     public static void addArtifactAttribute(Case autopsyCase, BlackboardArtifact artifact, String attributeName, int data) throws TskCoreException {
         BlackboardAttribute.Type attributeType = autopsyCase.getSleuthkitCase().getAttributeType(attributeName);
         if (attributeType == null) {
             return;
         }
-        
+
         artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
     }
 }

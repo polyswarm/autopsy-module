@@ -36,17 +36,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 
 /**
- *
- * @author rl
+ * Test to see if PolySwarm is live
  */
-
-
 public class TestRequest implements Request<TestResponse> {
     private final static Logger LOGGER = Logger.getLogger(HashSearchRequest.class.getName());
 
     public TestRequest() {}
-    
-    
+
+
     @Override
     public TestResponse makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

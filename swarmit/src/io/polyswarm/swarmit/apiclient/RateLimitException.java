@@ -27,7 +27,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Rob
+ * Used up all usages for the current plan
  */
 public class RateLimitException extends IOException {
     /**

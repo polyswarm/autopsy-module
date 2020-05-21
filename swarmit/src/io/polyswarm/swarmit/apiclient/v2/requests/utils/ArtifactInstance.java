@@ -32,11 +32,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- *
- * @author rl
+ * Represents an ArtifactInstance as returned from PolySwarm
+ * Only contains relevant data, leaving a lot out
  */
-
-
 public class ArtifactInstance {
     public final String id;
     public final List<Assertion> assertions;
@@ -44,11 +42,11 @@ public class ArtifactInstance {
     public final String sha256;
     public final String polyscore;
     public final boolean windowClosed;
-    
+
     /**
      * Creates a HashSearchResponse from JSON
      * @param json JSON from a HashSearch in V2
-     * @throws JSONException 
+     * @throws JSONException
      */
     public ArtifactInstance(JSONObject json) throws JSONException {
         JSONArray assertions_json = json.getJSONArray("assertions");
@@ -60,7 +58,7 @@ public class ArtifactInstance {
                 assertions.add(new Assertion(assertion));
             }
         }
-        
+
         DecimalFormat decimalFormat = new DecimalFormat("#.00");
         decimalFormat.setRoundingMode(RoundingMode.FLOOR);
         detection = new Detection(detection_json);
@@ -69,7 +67,7 @@ public class ArtifactInstance {
         windowClosed = json.getBoolean("window_closed");
         id = json.getString("id");
     }
-    
+
     @Override
     public String toString() {
         return String.format("<ArtifactInstanceResponse id=%s sha256=%s windowClosed=%s", this.id, this.sha256, this.windowClosed);

@@ -27,16 +27,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- *
- * @author rl
+ * Parse detection counts from PolySwarm
  */
-
-
 public class Detection {
     public final int benign;
     public final int malicious;
-    public final int total;  
-    
+    public final int total;
+
     public Detection(JSONObject jsonObject) throws JSONException {
         benign = jsonObject.getInt("benign");
         malicious = jsonObject.getInt("malicious");

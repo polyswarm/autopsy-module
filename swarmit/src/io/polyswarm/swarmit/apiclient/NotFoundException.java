@@ -27,7 +27,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Rob
+ * Cannot find the object in question
  */
 public class NotFoundException extends IOException {
     /**

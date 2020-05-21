@@ -26,8 +26,8 @@ package io.polyswarm.swarmit.apiclient;
 import java.io.IOException;
 
 /**
- * On any 401 this exception should be thrown.
- * Typically occurs when no API key is passed
+ * Indicates an issue with the API Key
+ *
  */
 public class NotAuthorizedException extends IOException {
     /**

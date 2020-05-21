@@ -56,15 +56,15 @@ public class ApiClientV2 {
     }
 
     /**
-     * Read the file object from the abstractFile and submit it to the
+     * Submit file content to PolySwarm to scan
      * API endpoint.
      *
-     * @param abstractFile AbstractFile object that contains a file.
-     * @return ScanResponse with details from the request
+     * @param abstractFile AbstractFile to scan
+     * @return ArtifactInstance
      *
-     * @throws IOException
+     * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance submitFile(AbstractFile abstractFile) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException {
+    public static ArtifactInstance submitFile(AbstractFile abstractFile) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException {
         try{
             return new SubmitArtifactRequest(abstractFile).makeRequest();
         } catch (URISyntaxException ex) {
@@ -75,15 +75,17 @@ public class ApiClientV2 {
             throw new IOException(ex);
         }
     }
-    
-    
+
+
     /**
-     * Run a hash operation on the abstractFile and submit the hash to the API endpoint
-     * 
-     * @param abstractFile AbstractFile object that contains a file.
-     * @return ArtifactInstanceResponse object
+     * Check PolySwarm for results on a given md5 hash
+     *
+     * @param md5Hash String with the hash
+     * @return ArtifactInstance object
+     *
+     * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance searchHash(String md5Hash) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException {    
+    public static ArtifactInstance searchHash(String md5Hash) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException {
         try {
             return new HashSearchRequest(md5Hash).makeRequest();
         } catch (URISyntaxException ex) {
@@ -96,14 +98,14 @@ public class ApiClientV2 {
     }
 
     /**
-     * Do a GET request for the submission status
+     * Check the submission status for a submission with the given id
      *
      * @param submissionId ID of the submission to check
-     * @return ArtifactInstanceResponse
+     * @return ArtifactInstance
      *
-     * @throws IOException
+     * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance getSubmissionStatus(String submissionId) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException  {
+    public static ArtifactInstance getSubmissionStatus(String submissionId) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException  {
         try {
             return new ArtifactSubmissionStatusRequest(submissionId).makeRequest();
         } catch (URISyntaxException ex) {
@@ -114,8 +116,16 @@ public class ApiClientV2 {
             throw new IOException(ex);
         }
     }
-    
-    
+
+
+    /**
+     * Get a list of Tags for a file
+     *
+     * @param artifactInstance ArtifactInstance to get tags
+     * @return List of Tag objects
+     *
+     * @throws IOException, BadRequestException, RateLimitException
+     */
     public static List<Tag> getTags(ArtifactInstance artifactInstance) throws IOException, BadRequestException, RateLimitException {
         try {
             return new TagRequest(artifactInstance).makeRequest();
@@ -136,10 +146,9 @@ public class ApiClientV2 {
      *
      * @param apiSettings - Instance of the API settings
      * @return true if connection successful, else false
-     * @throws IOException
      */
     public static TestResponse testConnection(SwarmItMarketplaceSettings apiSettings) {
-        
+
         try {
             return new TestRequest().makeRequest();
         } catch (URISyntaxException ex) {

@@ -45,19 +45,16 @@ import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.ReadContentInputStream;
 
 /**
- *
- * @author rl
+ * Request for uploading an artifact
  */
-
-
 public class SubmitArtifactRequest implements Request<ArtifactInstance> {
     private final static Logger LOGGER = Logger.getLogger(SubmitArtifactRequest.class.getName());
     AbstractFile abstractFile;
-    
+
     public SubmitArtifactRequest(AbstractFile abstractFile) {
         this.abstractFile = abstractFile;
     }
-    
+
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

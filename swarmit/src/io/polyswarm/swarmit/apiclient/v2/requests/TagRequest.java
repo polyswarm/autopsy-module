@@ -41,19 +41,16 @@ import org.apache.http.impl.client.HttpClients;
 import org.sleuthkit.datamodel.AbstractFile;
 
 /**
- *
- * @author rl
+ * Request a list of tags for an artifact hash
  */
-
-
 public class TagRequest implements Request<List<Tag>> {
     private final static Logger LOGGER = Logger.getLogger(HashSearchRequest.class.getName());
     String sha256Hash;
-    
+
     public TagRequest(ArtifactInstance artifactInstance) {
         sha256Hash = artifactInstance.sha256;
     }
-    
+
     @Override
     public List<Tag> makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException, NotFoundException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

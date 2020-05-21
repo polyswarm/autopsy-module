@@ -36,7 +36,6 @@ import org.sleuthkit.datamodel.TskCoreException;
 
 /**
  *
- * @author user
  */
 @Messages({"SwarmItModule.moduleName=SwarmIt"})
 public class SwarmItModule {
@@ -44,7 +43,7 @@ public class SwarmItModule {
     private static final String MODULE_NAME = Bundle.SwarmItModule_moduleName();
     private static SwarmItController controller;
     private static final Object CONTROLLER_LOCK = new Object();
-    
+
     public static SwarmItController getController() throws TskCoreException, NoCurrentCaseException, SwarmItDbException {
         synchronized (CONTROLLER_LOCK) {
             if (controller == null) {
@@ -59,7 +58,7 @@ public class SwarmItModule {
      */
     static void onStart() {
         LOGGER.log(Level.INFO, "Starting SwarmIt Module."); // NON-NLS
-        
+
         Case.addPropertyChangeListener(new CaseEventListener());
     }
 

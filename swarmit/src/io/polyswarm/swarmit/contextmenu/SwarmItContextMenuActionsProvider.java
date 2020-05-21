@@ -34,23 +34,22 @@ import org.sleuthkit.autopsy.corecomponentinterfaces.ContextMenuActionsProvider;
 import org.sleuthkit.datamodel.AbstractFile;
 
 /**
- * This creates a single context menu item for submitting an
- * artifact to PolySwarm for analysis.
+ * This creates context menu items for submitting an files/hashes to PolySwarm
  */
 @ServiceProvider(service = ContextMenuActionsProvider.class)
 public class SwarmItContextMenuActionsProvider implements ContextMenuActionsProvider {
     private static final Logger LOGGER = Logger.getLogger(SwarmItContextMenuActionsProvider.class.getName());
-    
+
     @Override
     @org.openide.util.NbBundle.Messages({"SwarmItContextMenuActionsProvider.scan.text=Scan on PolySwarm",
         "SwarmItContextMenuActionsProvider.hash.text=Lookup Hash on PolySwarm"})
     public List<Action> getActions() {
         ArrayList<Action> actions = new ArrayList<>();
-        
+
         final Collection<? extends AbstractFile> selectedFiles = Utilities.actionsGlobalContext().lookupAll(AbstractFile.class);
-        
+
         for (AbstractFile abstractFile : selectedFiles) {
-            
+
             if (abstractFile != null && abstractFile.isFile()) {
                 String scanTitle = Bundle.SwarmItContextMenuActionsProvider_scan_text();
                 String hashLookupTitle = Bundle.SwarmItContextMenuActionsProvider_hash_text();

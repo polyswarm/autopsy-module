@@ -33,11 +33,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 
 /**
- *
- * @author rl
+ * Turn the server response on a TestRequest into a TestResponse
  */
-
-
 public class TestResponseHandler implements ResponseHandler<TestResponse> {
     private final static Logger LOGGER = Logger.getLogger(ArtifactInstanceResponseHandler.class.getName());
 
