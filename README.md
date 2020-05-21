@@ -20,7 +20,7 @@ You can find them [here](https://github.com/polyswarm/autopsy-module/releases/)
 1. When the validation warning pops up, hit continue.
 1. Restart Autopsy.
 
-At this poiny you just need an API key to get started.
+At this point you just need an API key to get started.
 
 
 ## Get Your API Key
