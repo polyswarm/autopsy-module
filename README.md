@@ -2,20 +2,25 @@
 
 ## Installation
 
-After installing Autopsy you can install this plugin.
+This module only works with Autopsy, so you need to have that installed before installing this module.
+You can find Autopsy [here](https://www.autopsy.com/download/)
 
-You can find the official release on github [here](https://github.com/polyswarm/autopsy-module/releases/)
+New release of this module are published on github.
+You can find them [here](https://github.com/polyswarm/autopsy-module/releases/)
 
-1. Download the latest release `.nbm`.
-1. This is the NetBeans module file format that Autopsy supports.
+### Steps
+
+1. Download the latest release. You want the file with extension `.nbm`.
 1. After the module has download, open Autopsy.
 1. Using the toolbar at the top select `Tools` then `Plugins`.
 1. Go to the `Downloaded` tab in the Plugins window.
-1. Click Add Plugin, then navigate to the nbm file you downloaded earlier.
+1. Click `Add Plugin`, then browse to the module you downloaded earlier.
 1. Click Install
 1. Follow prompts on the Plugin Installer
 1. When the validation warning pops up, hit continue.
-1. Restart Autopsy
+1. Restart Autopsy.
+
+At this poiny you just need an API key to get started.
 
 
 ## Get Your API Key
@@ -25,14 +30,14 @@ You can get an API key from [PolySwarm](https://polyswarm.network)
 
 1. Sign up for an account with PolySwarm on polyswarm.network
 1. Optionally create a team if working together with others.
-1. From your accont, or the team account select `Settings` => `API Keys`
+1. From your account, or the team account, select `Settings` => `API Keys`
 1. Copy any API key from your/your team's list
 
 Once you have your API Key copied, go back into Autopsy
 
 1. Select `Tools` => `Options`
 1. Go to `SwarmIt` and enter your API key in the proper text field
-1. Apply, then Ok
+1. `Apply`, then `Ok`
 
 You should now be ready to use the PolySwarm Autopsy Module
 
