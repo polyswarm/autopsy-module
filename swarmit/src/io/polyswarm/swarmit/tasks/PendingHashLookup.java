@@ -44,8 +44,8 @@ import org.sleuthkit.datamodel.TskCoreException;
  */
 public class PendingHashLookup extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingHashLookup.class.getName());
-    public final String md5Hash;
-    public final long abstractFileId;
+    private final String md5Hash;
+    private final long abstractFileId;
 
     public PendingHashLookup(long abstractFileId, String md5Hash) {
         this.abstractFileId = abstractFileId;
@@ -56,6 +56,14 @@ public class PendingHashLookup extends PendingTask {
         abstractFileId = abstractFile.getId();
         md5Hash = abstractFile.getMd5Hash();
 
+    }
+
+    public String getMd5Hash() {
+        return md5Hash
+    }
+
+    public long getAbstractFileId() {
+        return abstractFileId;
     }
 
     /**

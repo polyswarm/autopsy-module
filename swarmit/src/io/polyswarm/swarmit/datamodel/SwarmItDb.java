@@ -37,7 +37,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 
 /**
  * Manage the database content and connections to the database.
- * 
+ *
  * Note: code largely based off of Autopsy's centralrepository sqlite implementation.
  */
 public class SwarmItDb {
@@ -45,9 +45,9 @@ public class SwarmItDb {
     private static SwarmItDb instance;
     private BasicDataSource connectionPool = null;
     private final SwarmItDbSettings dbSettings;
-    
+
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
-    
+
     /**
      * Get the singleton instance of SwarmItDb
      *
@@ -65,7 +65,7 @@ public class SwarmItDb {
 
     /**
      * Constructor. Loads db settings.
-     * 
+     *
      * @throws SwarmItDbException
      */
     private SwarmItDb() throws SwarmItDbException {
@@ -80,7 +80,7 @@ public class SwarmItDb {
                     connectionPool.close();
                     connectionPool = null; // for it to be re-created on next connect()
                 }
-                
+
             }
             // TODO: clearCaches(); // where did this come from?
         } catch (SQLException ex) {
@@ -90,38 +90,38 @@ public class SwarmItDb {
 
     /**
      * Setup a connection pool for sqlite db connections.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     private void setupConnectionPool() throws SwarmItDbException {
         if (dbSettings.dbFileExists() == false) {
             throw new SwarmItDbException("Swarmit database missing."); // NON-NLS
         }
-        
+
         connectionPool = new BasicDataSource();
         connectionPool.setDriverClassName(dbSettings.getDriver());
         connectionPool.setUrl(dbSettings.getConnectionURL());
-        
+
         // adjust pool configuration
         connectionPool.setInitialSize(4);
         connectionPool.setMaxWaitMillis(1000);
         connectionPool.setValidationQuery(dbSettings.getValidationQuery());
         connectionPool.setConnectionInitSqls(Arrays.asList("PRAGMA foreign_keys = ON"));
     }
-    
+
     /**
      * Lazily setup Singleton connection on first connection request
-     * 
+     *
      * @return A connection from the connection pool
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     protected Connection connect() throws SwarmItDbException {
         synchronized (this) {
             if (connectionPool == null) {
                 setupConnectionPool();
             }
-            
+
             try {
                 return connectionPool.getConnection();
             } catch (SQLException ex) {
@@ -129,21 +129,21 @@ public class SwarmItDb {
             }
         }
     }
-    
+
     /**
      * Add a new name/value pair to the db_info table
-     * 
+     *
      * @param name  Key to set
      * @param value Value to set for the name/value key pair.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public void newDbInfo(String name, String value) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "INSERT INTO db_info (name, value) VALUES (?, ?)";
 
@@ -162,22 +162,22 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
+
     /**
      * Get the value for the given name (key) from the db_info table.
-     * 
+     *
      * @param name Key to lookup
-     * 
+     *
      * @return  Value associated with the name/value key pair.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public String getDbInfo(String name) throws SwarmItDbException {
         try {
             acquireSharedLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
             String value = null;
@@ -201,19 +201,19 @@ public class SwarmItDb {
             releaseSharedLock();
         }
     }
-    
+
     /**
      * Update the value for a name in the db_info table.
-     * 
+     *
      * @param name  Key to lookup
      * @param value Value to set for the name/value key pair
      */
     public void updateDbInfo(String name, String value) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "UPDATE db_info SET value=? WHERE name=?";
             try {
@@ -231,21 +231,21 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
+
     /**
      * Add a new file to the pending_submissions table
-     * 
+     *
      * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API 
-     * 
-     * @throws SwarmItDbException 
+     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     *
+     * @throws SwarmItDbException
      */
     public void newPendingSubmission(Long abstractFileId) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "INSERT INTO pending_submissions (abstract_file_id, submission_uuid) VALUES (?, ?)";
 
@@ -264,21 +264,21 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
+
         /**
      * Add a new file to the pending_submissions table
-     * 
+     *
      * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API 
-     * 
-     * @throws SwarmItDbException 
+     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     *
+     * @throws SwarmItDbException
      */
     public void newPendingSubmissionId(Long abstractFileId, String submissionUUID) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "UPDATE pending_submissions SET submission_uuid=? WHERE abstract_file_id=?";
 
@@ -297,21 +297,21 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
+
     /**
      * Check to see if a file is already in the pending_submissions table.
-     * 
+     *
      * @param abstractFileId  Autopsy AbstractFile ID number
      * @return  Boolean true if in the table, else false.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public Boolean isPending(Long abstractFileId) throws SwarmItDbException {
         try {
             acquireSharedLock();
-            
+
             Connection conn = connect();
-            
+
             Boolean isFound = false;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
@@ -338,21 +338,21 @@ public class SwarmItDb {
             releaseSharedLock();
         }
     }
-    
+
 
     /**
      * Get the list of pending submissions from the pending_submissions table.
-     * 
+     *
      * @return  List of SwarmItPendingSubmission's.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public List<PendingSubmission> getPendingSubmissions() throws SwarmItDbException {
         try {
             acquireSharedLock();
-            
+
             Connection conn = connect();
-            
+
             List<PendingSubmission> pendingSubmissions = new ArrayList<>();
             PendingSubmission psResult;
             PreparedStatement preparedStatement = null;
@@ -377,20 +377,20 @@ public class SwarmItDb {
             releaseSharedLock();
         }
     }
-    
+
     /**
      * Delete the pending submission from the pending_submissions table.
-     * 
+     *
      * @param pendingSubmission SwarmItPendingSubmission object
-     * 
+     *
      * @throws SwarmItDbException
      */
     public void deletePendingSubmission(PendingSubmission pendingSubmission) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "DELETE from pending_submissions WHERE abstract_file_id=? AND submission_uuid=?";
             try {
@@ -408,30 +408,30 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
+
     /**
      * Convert a ResultSet into a PendingSubmission object.
-     * 
+     *
      * @param resultSet ResultSet row returned from db query
      * @return  PendingSubmission object
-     * @throws SQLException 
+     * @throws SQLException
      */
     private PendingSubmission getPendingSubmissionFromResultSet(ResultSet resultSet) throws SQLException {
         if (null == resultSet) {
             return null;
         }
-        
+
         return new PendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"));
     }
-    
-    
+
+
     /**
      * Add a new file to the pending_hashes table
-     * 
+     *
      * @param abstractFileId  Autopsy AbstractFile ID number
      * @param md5Hash  hash of the file
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public void newPendingHashLookup(Long abstractFileId, String md5Hash) throws SwarmItDbException {
         try {
@@ -457,22 +457,22 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-        
-        
+
+
         /**
      * Check to see if a hash is already in the pending_hashes table.
-     * 
+     *
      * @param abstractFileId  Autopsy AbstractFile ID number
      * @return  Boolean true if in the table, else false.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public Boolean isPendingHashLookup(Long abstractFileId) throws SwarmItDbException {
         try {
             acquireSharedLock();
-            
+
             Connection conn = connect();
-            
+
             Boolean isFound = false;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
@@ -499,21 +499,21 @@ public class SwarmItDb {
             releaseSharedLock();
         }
     }
-    
-        
+
+
     /**
      * Get the list of pending hashes from the pending_hashes table.
-     * 
+     *
      * @return  List of SwarmItPendingHashLookups's.
-     * 
-     * @throws SwarmItDbException 
+     *
+     * @throws SwarmItDbException
      */
     public List<PendingHashLookup> getPendingHashLookups() throws SwarmItDbException {
         try {
             acquireSharedLock();
-            
+
             Connection conn = connect();
-            
+
             List<PendingHashLookup> pendingHashLookups = new ArrayList<>();
             PendingHashLookup psResult;
             PreparedStatement preparedStatement = null;
@@ -538,27 +538,27 @@ public class SwarmItDb {
             releaseSharedLock();
         }
     }
-        
-        
+
+
      /**
      * Delete the pending submission from the pending_submissions table.
-     * 
+     *
      * @param pendingSubmission SwarmItPendingSubmission object
-     * 
+     *
      * @throws SwarmItDbException
      */
     public void deletePendingHashLookup(PendingHashLookup pendingHashLookup) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
-            
+
             Connection conn = connect();
-            
+
             PreparedStatement preparedStatement = null;
             String sql = "DELETE from pending_hashes WHERE abstract_file_id=? AND md5_hash=?";
             try {
                 preparedStatement = conn.prepareStatement(sql);
-                preparedStatement.setLong(1, pendingHashLookup.abstractFileId);
-                preparedStatement.setString(2, pendingHashLookup.md5Hash);
+                preparedStatement.setLong(1, pendingHashLookup.getAbstractFileId();
+                preparedStatement.setString(2, pendingHashLookup.getMd5Hash();
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
                 throw new SwarmItDbException("Error deleteing pending hash look up: " + pendingHashLookup.toString(), ex); // NON-NLS
@@ -570,24 +570,24 @@ public class SwarmItDb {
             releaseExclusiveLock();
         }
     }
-    
-    
-    
+
+
+
     /**
      * Convert a ResultSet into a PendingHashLookupobject.
-     * 
+     *
      * @param resultSet ResultSet row returned from db query
      * @return  PendingHashLookup object
-     * @throws SQLException 
+     * @throws SQLException
      */
     private PendingHashLookup getPendingHashLookupFromResultSet(ResultSet resultSet) throws SQLException {
         if (null == resultSet) {
             return null;
         }
-        
+
         return new PendingHashLookup(resultSet.getLong("abstract_file_id"), resultSet.getString("md5_hash"));
     }
-    
+
     /**
      * Acquire the lock that provides exclusive access to the database.
      * Call this method in a try block with a call to the release method
@@ -596,7 +596,7 @@ public class SwarmItDb {
     private void acquireExclusiveLock() {
         rwLock.writeLock().lock();
     }
-    
+
     /**
      * Release the lock that provides exclusive access to the database.
      * This method should be called in the finally block of a try block
