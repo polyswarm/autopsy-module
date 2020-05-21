@@ -1,59 +1,100 @@
-# autopsy-module
-Module for Autopsy to enable forensic analysts to submit files into PolySwarm marketplace for analysis.
+# PolySwarm Autopsy Module
 
-# Features
+## Installation
 
-## Right-click option to submit to PolySwarm (SwarmIt)
+After installing Autopsy you can install this plugin.
 
-When an Autopsy case is open and has ingested files, a new right-click menu option is now available. This option is called "SwarmIt", when clicked, the file will be submitted to the PolySwarm marketplace for analysis.
+You can find the official release on github [here](https://github.com/polyswarm/autopsy-module/releases/)
 
-## Custom artifact type
+1. Download the latest release `.nbm`.
+1. This is the NetBeans module file format that Autopsy supports.
+1. After the module has download, open Autopsy.
+1. Using the toolbar at the top select `Tools` then `Plugins`.
+1. Go to the `Downloaded` tab in the Plugins window.
+1. Click Add Plugin, then navigate to the nbm file you downloaded earlier.
+1. Click Install
+1. Follow prompts on the Plugin Installer
+1. When the validation warning pops up, hit continue.
+1. Restart Autopsy
 
-When the results are returned from the PolySwarm marketplace for a submission, a new subtree will be added to the left result pane under Results -> Extracted Content, called "PolySwarm Results".
-Under this sub-tree, you can click on the PolySwarm Result node and the upper right frame of the Autopsy UI will display all of the files and results that have been submitted to the PolySwarm marketplace.
-If you click on one of the files in the upper right frame, it will populate a table in the bottom right.
-This table will show up to three comments that inform the user about the file & state as it progresses through a PolySwarm bounty.
 
-### Assertions: [verdict]
+## Get Your API Key
 
-If any assertion identifies the file as malicious, this field will show `Assertions: Malicious`.
-Otherwise, `Assertions: NonMalicious`
+The PolySwarm Autopsy Module requires an API Key to get valid responses from PolySwarm.
+You can get an API key from [PolySwarm](https://polyswarm.network)
 
-### Votes: [verdict]
+1. Sign up for an account with PolySwarm on polyswarm.network
+1. Optionally create a team if working together with others.
+1. From your accont, or the team account select `Settings` => `API Keys`
+1. Copy any API key from your/your team's list
 
-Votes is a bit more complex.
-If the arbiters reach a quroum, this will be the majority response.
-If the arbiters fail to reach a quorum, this will be identified as malicious, if even one arbiter votes malicious.
-You can tell if they reached a quorum by the presense of the `Quorum: [verdict]` comment.
-If it exists, they reached a quorum, if it does not exists, they did not.
-Like assertions, the comment will display as either `Votes: Malicious` or `Votes: NonMalicious`.
+Once you have your API Key copied, go back into Autopsy
 
-### Quorum: [verdict]
+1. Select `Tools` => `Options`
+1. Go to `SwarmIt` and enter your API key in the proper text field
+1. Apply, then Ok
 
-If the arbiters reached a quorum on the file, this comment will show in the table.
-It will show as either `Quorum: Malicious` or `Quorum: NonMalicious` based on the majority vote.
+You should now be ready to use the PolySwarm Autopsy Module
 
-## Known bad
+## Using PolySwarm Module
 
-If a file is submitted to PolySwarm and the arbiters reach a quorum identifying the file as "malicious", it will be tagged Known Bad.
+### Scan File
 
-## Options Panel
+Scanning files requires an open Case, with some files.
 
-In the Options Panel, there is a purple "P" logo for this module. On that options panel, the user can set the parameters of the SwarmIt module.
+Simply right click the intended file, and click `Scan on PolySwarm`.
+This will send the file to PolySwarm where it will be scanned.
+Scans take a minimum of 25 seconds, but the delay can increase if PolySwarm is under load.
 
-### Submission API URL
+After the scan completes, a new `Extracted Content` field named `PolySwarm Results` will appear.
+Subsequent scans will increase the number to it's right.
+Click on the `PolySwarm Results` name in the tree to see results.
+This will show all the results from all the scans in this case.
 
-This is the url of the hosted service that will submit the user's files to polyswarm.
+Alternatively, you can view the results in the results tab at the bottom of the `Listing` view.
 
-*This must be a valid service.*
 
-### API Key
+### Hash Lookup
 
-Consumer on the PolySwarm staging and production environment is protected via API Key.
-Keys can be obtained from the PolySwarm team directly.
+Hash Lookup requires an open Case with some files, that have been hashed.
+Specially, it requires an md5 hash to have been generated for the file already.
 
-If targeting a development environment, such as orchestration, leave this field blank.
+To start a Hash Lookup simply right click the intended file, and click `Lookup Hash on PolySwarm`.
+The hash lookup should complete in a couple of seconds.
 
-### NCT Amount to pay per submisison.
+The results form a Hash lookup are show in the `PolySwarm Results` artifact from scanning.
+The details are the same, with one exception.
+If PolySwarm has not seen the file with that hash before, it will add a not found comment.
 
-*Note: currently NCT amount is visible, but not implemented, so you can ignore it.*
+## Features
+
+### Right-click options to Scan or Hash Lookup on PolySwarm
+
+When an Autopsy case is open and has ingested files, two new options show up on right clicks: `Scan On PolySwarm` and `Hash Lookup on PolySwarm`.
+
+### Custom artifact type
+
+Results from PolySwarm are shown in a new leaf in the tree under `Extracted Content` call `PolySwarmResults`.
+Each scan/hash lookup creates new artifact under that heading, so past results are isolated and immutable.
+
+### PolyScore™
+
+All scans and hash searches now include the PolyScore.
+Find out more about PolyScore on `https://polyswarm.network`.
+
+### Assertions
+
+Received a list of all assertions un Author:verdict pairs.
+No guesswork why PolySwarm deemed a file malicious.
+
+### Malware Families
+
+Displays a list of malware families that engines have provided with their assertions.
+
+### Tags
+
+Get tags PolySwarm has added to kickstart analysis.
+
+### Known bad
+
+The PolySwarm Autopsy Module will mark files  as `Known Bad` based on PolyScore and Assertion results
