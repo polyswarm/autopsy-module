@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.datamodel;
+package io.polyswarm.swarmit.tasks;
 
 import io.polyswarm.swarmit.SwarmItController;
 import io.polyswarm.swarmit.SwarmItModule;
@@ -31,6 +31,8 @@ import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Assertion;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
+import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;

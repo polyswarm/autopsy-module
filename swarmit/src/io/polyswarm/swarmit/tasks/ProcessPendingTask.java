@@ -26,7 +26,6 @@ package io.polyswarm.swarmit.tasks;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
-import io.polyswarm.swarmit.datamodel.PendingTask;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import java.io.IOException;

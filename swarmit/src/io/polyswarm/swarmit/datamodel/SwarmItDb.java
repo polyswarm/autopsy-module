@@ -23,6 +23,9 @@
  */
 package io.polyswarm.swarmit.datamodel;
 
+import io.polyswarm.swarmit.tasks.PendingHashLookup;
+import io.polyswarm.swarmit.tasks.PendingSubmission;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
