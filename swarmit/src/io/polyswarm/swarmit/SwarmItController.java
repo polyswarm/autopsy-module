@@ -64,13 +64,7 @@ public class SwarmItController {
     private ListeningScheduledExecutorService dbExecutor;
     public static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_RESULTS";
     public static final String POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME = "PolySwarm Results";
-    public static final String POLYSWARM_ARTIFACT_TYPE_ASSERTIONS_NAME = "POLYSWARM_ASSERTIONS";
-    public static final String POLYSWARM_ARTIFACT_TYPE_ASSERTIONS_DISPLAY_NAME = "PolySwarm Assertions";
-    public static final String POLYSWARM_ARTIFACT_TYPE_TAGS_NAME = "POLYSWARM_TAGS";
-    public static final String POLYSWARM_ARTIFACT_TYPE_TAGS_DISPLAY_NAME = "PolySwarm Tags";
-    public static final String POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_NAME = "POLYSWARM_MALWARE_FAMILIES";
-    public static final String POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_DISPLAY_NAME = "PolySwarm Malware Families";
-    
+
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME = "POLYSWARM_MALICIOUS_DETECTIONS";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_DISPLAY = "Malicious Detections";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME = "POLYSWARM_BENIGN_DETECTIONS";
@@ -83,9 +77,9 @@ public class SwarmItController {
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DISPLAY = "PolyScore\u2122";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME = "POLYSWARM_TAG";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY = "Tag";
-    
+
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT = "POLYSWARM_%s";
-    
+
     public Case getAutopsyCase() {
         return autopsyCase;
     }
@@ -96,15 +90,9 @@ public class SwarmItController {
         this.dbInstance = SwarmItDb.getInstance();
 
         dbExecutor = getNewDBExecutor();
-        createCustomArtifactTypes(this.autopsyCase);
+        createCustomArtifactType(this.autopsyCase, POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
         createCustomArtifactAttributes(this.autopsyCase);
         dbExecutor.scheduleAtFixedRate(new ProcessPendingTask(this.dbInstance, this.autopsyCase), 0, 2, TimeUnit.SECONDS);
-    }
-    
-    private static void createCustomArtifactTypes(Case autopsyCase) {
-        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
-        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_TAGS_NAME, POLYSWARM_ARTIFACT_TYPE_TAGS_DISPLAY_NAME);
-        createCustomArtifactType(autopsyCase, POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_NAME, POLYSWARM_ARTIFACT_TYPE_MALWARE_FAMILIES_DISPLAY_NAME);
     }
 
     /**
@@ -122,7 +110,7 @@ public class SwarmItController {
             LOGGER.log(Level.SEVERE, "Failed to create POLYSWARM_VERDICT custom artifact type", ex);
         }
     }
-    
+
     private static void createCustomArtifactAttributes(Case autopsyCase) {
             createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.INTEGER, POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_DISPLAY);
             createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.INTEGER, POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_DISPLAY);
@@ -131,7 +119,7 @@ public class SwarmItController {
             createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_DISPLAY);
             createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY);
     }
-    
+
     public static void createCustomArtifactAttribute(Case autopsyCase, String name, TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE valueType, String display) {
         try {
             if (autopsyCase.getSleuthkitCase().getAttributeType(name) == null) {
