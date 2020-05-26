@@ -50,7 +50,7 @@ public final class SwarmItDbSettings {
     private final String JDBC_BASE_URI = "jdbc:sqlite:"; // NON-NLS
     private final String VALIDATION_QUERY = "SELECT count(*) from sqlite_master"; // NON-NLS
     private static final Integer DB_SCHEMA_VERSION_MAJOR = 1;
-    private static final Integer DB_SCHEMA_VERSION_MINOR = 0;
+    private static final Integer DB_SCHEMA_VERSION_MINOR = 1;
     private static final String PRAGMA_SYNC_OFF = "PRAGMA synchronous = OFF"; // NON-NLS
     private static final String PRAGMA_SYNC_NORMAL = "PRAGMA synchronous = NORMAL"; // NON-NLS
     private static final String PRAGMA_JOURNAL_WAL = "PRAGMA journal_mode = WAL"; // NON-NLS
@@ -218,6 +218,15 @@ public final class SwarmItDbSettings {
         createDbInfoTable.append("name text NOT NULL,");
         createDbInfoTable.append("value text NOT NULL");
         createDbInfoTable.append(")");
+        
+        
+        StringBuilder createPendingHashLookupTable = new StringBuilder();
+        createPendingHashLookupTable.append("CREATE TABLE IF NOT EXISTS pending_hashes(");
+        createPendingHashLookupTable.append("id integer primary key autoincrement NOT NULL,");
+        createPendingHashLookupTable.append("abstract_file_id integer NOT NULL,");
+        createPendingHashLookupTable.append("md5_hash text NOT NULL,");
+        createPendingHashLookupTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
+        createPendingHashLookupTable.append(")");
 
         Connection conn = null;
         try {
@@ -235,6 +244,7 @@ public final class SwarmItDbSettings {
             
             stmt.execute(createPendingSubmissionsTable.toString());
             stmt.execute(createDbInfoTable.toString());
+            stmt.execute(createPendingHashLookupTable.toString());
                     
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to initialize sqlite db schema.", ex); // NON-NLS

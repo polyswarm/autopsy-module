@@ -1,7 +1,7 @@
-/*
+ /*
  * The MIT License
  *
- * Copyright 2018 PolySwarm PTE. LTD.
+ * Copyright 2020 PolySwarm PTE. LTD.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.apiclient;
-
-import java.io.IOException;
+package io.polyswarm.swarmit.apiclient.v2.requests;
 
 /**
- * Indicates an issue with the API Key
- *
+ * Test results from TestRequest
  */
-public class NotAuthorizedException extends IOException {
-    /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
-     */
-    public NotAuthorizedException(String msg) {
-        super(msg);
+public class TestResponse {
+    public final boolean passed;
+
+    public TestResponse(boolean passed) {
+        this.passed = passed;
     }
 }

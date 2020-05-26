@@ -23,38 +23,35 @@
  */
 package io.polyswarm.swarmit.contextmenu;
 
-import io.polyswarm.swarmit.apiclient.SwarmItApiClient;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
-import org.openide.util.NbBundle.Messages;
 import org.openide.windows.WindowManager;
 import org.sleuthkit.datamodel.AbstractFile;
 
 /**
  * Action added to right-click menu on an abstractFile.
  */
-public class AddSwarmItAction extends AbstractAction {
+public class ScanAction extends AbstractAction {
     
     private static final long serivalVersionUID = 1L;
-    private static final Logger LOGGER = Logger.getLogger(AddSwarmItAction.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ScanAction.class.getName());
     private final AbstractFile abstractFile;
     
-    AddSwarmItAction(String menuItemStr, AbstractFile abstractFile) {
+    ScanAction(String menuItemStr, AbstractFile abstractFile) {
         super(menuItemStr);
         this.abstractFile = abstractFile;
     }
     
     @Override
-    @Messages({"AddSwarmItAction.dbError.message=Failed to record submission in pending submissions database.",
-        "AddSwarmItAction.submitError.message=Failed to submit file to PolySwarm.",
-        "AddSwarmItAction.messageDialog.title=SwarmIt",
-        "AddSwarmItAction.alreadyPending.message=This file was already submitted."})
+    @org.openide.util.NbBundle.Messages({"ScanAction.dbError.message=Failed to record submission in pending submissions database.",
+        "ScanAction.submitError.message=Failed to submit file to PolySwarm.",
+        "ScanAction.messageDialog.title=SwarmIt",
+        "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
         if (abstractFile != null) {
@@ -64,33 +61,24 @@ public class AddSwarmItAction extends AbstractAction {
                 SwarmItDb instance = SwarmItDb.getInstance();
                 // TODO: here we check to see if a file was already submitted before re-submitting
                 // we should allow the user to click YES/NO to force a re-submit.
-                if (!instance.isAlreadyPending(abstractFileId)) {
-                    // submit the file
-                    String submissionUUID = SwarmItApiClient.submitFile(abstractFile);
+                if (!instance.isPending(abstractFileId)) {
                     // add file info to pending submissions db
-                    instance.newPendingSubmission(abstractFileId, submissionUUID);                    
-                    LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}, submissionUUID: {1}.",
-                        abstractFileId.toString(),
-                        submissionUUID));
+                    instance.newPendingSubmission(abstractFileId);
+                    LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}.",
+                        abstractFileId.toString()));
                 } else {
                     LOGGER.log(Level.INFO, "File is already pending, not re-submitting.");
                     JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                        Bundle.AddSwarmItAction_alreadyPending_message(),
-                        Bundle.AddSwarmItAction_messageDialog_title(), 
+                        Bundle.ScanAction_alreadyPending_message(),
+                        Bundle.ScanAction_messageDialog_title(), 
                         JOptionPane.ERROR_MESSAGE);
                 }
 
             } catch (SwarmItDbException ex) {
                 LOGGER.log(Level.SEVERE, "Error adding new submission data to sqlite db.", ex);
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                        Bundle.AddSwarmItAction_dbError_message(),
-                        Bundle.AddSwarmItAction_messageDialog_title(), 
-                        JOptionPane.ERROR_MESSAGE);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Error submitting file to PolySwarm API.", ex);
-                JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(), 
-                        Bundle.AddSwarmItAction_submitError_message(),
-                        Bundle.AddSwarmItAction_messageDialog_title(),
+                        Bundle.ScanAction_dbError_message(),
+                        Bundle.ScanAction_messageDialog_title(), 
                         JOptionPane.ERROR_MESSAGE);
             }
         }

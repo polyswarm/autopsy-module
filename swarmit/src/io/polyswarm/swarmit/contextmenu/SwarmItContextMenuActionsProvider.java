@@ -28,32 +28,35 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import org.openide.util.NbBundle.Messages;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
 import org.sleuthkit.autopsy.corecomponentinterfaces.ContextMenuActionsProvider;
 import org.sleuthkit.datamodel.AbstractFile;
 
 /**
- * This creates a single context menu item for submitting an
- * artifact to PolySwarm for analysis.
+ * This creates context menu items for submitting an files/hashes to PolySwarm
  */
 @ServiceProvider(service = ContextMenuActionsProvider.class)
 public class SwarmItContextMenuActionsProvider implements ContextMenuActionsProvider {
     private static final Logger LOGGER = Logger.getLogger(SwarmItContextMenuActionsProvider.class.getName());
-    
+
     @Override
-    @Messages({"SwarmItContextMenuActionsProvider.menuItemStr.text=SwarmIt"})
+    @org.openide.util.NbBundle.Messages({"SwarmItContextMenuActionsProvider.scan.text=Scan on PolySwarm",
+        "SwarmItContextMenuActionsProvider.hash.text=Lookup Hash on PolySwarm"})
     public List<Action> getActions() {
         ArrayList<Action> actions = new ArrayList<>();
-        
+
         final Collection<? extends AbstractFile> selectedFiles = Utilities.actionsGlobalContext().lookupAll(AbstractFile.class);
-        
+
         for (AbstractFile abstractFile : selectedFiles) {
-            
+
             if (abstractFile != null && abstractFile.isFile()) {
-                String menuItemStr = Bundle.SwarmItContextMenuActionsProvider_menuItemStr_text();
-                actions.add(new AddSwarmItAction(menuItemStr, abstractFile));
+                String scanTitle = Bundle.SwarmItContextMenuActionsProvider_scan_text();
+                String hashLookupTitle = Bundle.SwarmItContextMenuActionsProvider_hash_text();
+                actions.add(new ScanAction(scanTitle, abstractFile));
+                if (abstractFile.getMd5Hash() != null) {
+                    actions.add(new HashLookupAction(hashLookupTitle, abstractFile));
+                }
             }
         }
         return actions;

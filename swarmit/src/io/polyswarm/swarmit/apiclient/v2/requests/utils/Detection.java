@@ -1,7 +1,7 @@
-/*
+ /*
  * The MIT License
  *
- * Copyright 2018 PolySwarm PTE. LTD.
+ * Copyright 2020 PolySwarm PTE. LTD.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.apiclient;
+package io.polyswarm.swarmit.apiclient.v2.requests.utils;
 
-import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * Indicates an issue with the API Key
- *
+ * Parse detection counts from PolySwarm
  */
-public class NotAuthorizedException extends IOException {
-    /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
-     */
-    public NotAuthorizedException(String msg) {
-        super(msg);
+public class Detection {
+    public final int benign;
+    public final int malicious;
+    public final int total;
+
+    public Detection(JSONObject jsonObject) throws JSONException {
+        benign = jsonObject.getInt("benign");
+        malicious = jsonObject.getInt("malicious");
+        total = jsonObject.getInt("total");
     }
 }

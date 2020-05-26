@@ -23,3 +23,6 @@
 hs_err_pid*
 /swarmit/nbproject/private/
 /swarmit/build/
+/swarmit/release/modules
+
+.idea/

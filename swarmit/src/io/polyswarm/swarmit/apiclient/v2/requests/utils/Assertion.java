@@ -1,7 +1,7 @@
-/*
+ /*
  * The MIT License
  *
- * Copyright 2018 PolySwarm PTE. LTD.
+ * Copyright 2020 PolySwarm PTE. LTD.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.apiclient;
+package io.polyswarm.swarmit.apiclient.v2.requests.utils;
 
-import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * Indicates an issue with the API Key
- *
+ * Represents an assertion from an engine
  */
-public class NotAuthorizedException extends IOException {
+public class Assertion {
+    public final String name;
+    public final boolean mask;
+    public final boolean verdict;
+    public final String malwareFamily;
+
+    public Assertion(String name, boolean mask, boolean verdict, String malwareFamily) {
+        this.name = name;
+        this.mask = mask;
+        this.verdict = verdict;
+        this.malwareFamily = malwareFamily;
+    }
+
+    public Assertion(JSONObject assertion) throws JSONException {
+        name = assertion.getString("author_name");
+        mask = assertion.getBoolean("mask");
+        verdict = assertion.getBoolean("verdict");
+
+        JSONObject metadata = assertion.getJSONObject("metadata");
+        malwareFamily = metadata.getString("malware_family");
+    }
+
     /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
+     * Gives meaning to true/false by writing what it out
      */
-    public NotAuthorizedException(String msg) {
-        super(msg);
+    public String getHumanReadableVerdict() {
+        return verdict ? "Malicious" : "Benign";
     }
 }

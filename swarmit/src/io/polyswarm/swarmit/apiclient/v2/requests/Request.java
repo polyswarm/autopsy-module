@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2018 PolySwarm PTE. LTD.
+ * Copyright 2020 PolySwarm PTE. LTD.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.apiclient;
+package io.polyswarm.swarmit.apiclient.v2.requests;
 
+import io.polyswarm.swarmit.apiclient.BadRequestException;
+import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 /**
- * Indicates an issue with the API Key
- *
+ * Interface for making Requests
  */
-public class NotAuthorizedException extends IOException {
-    /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
-     */
-    public NotAuthorizedException(String msg) {
-        super(msg);
-    }
+public interface Request<E> {
+    public E makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException;
 }

@@ -1,7 +1,7 @@
-/*
+ /*
  * The MIT License
  *
- * Copyright 2018 PolySwarm PTE. LTD.
+ * Copyright 2020 PolySwarm PTE. LTD.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,22 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.swarmit.apiclient;
+package io.polyswarm.swarmit.apiclient.v2.requests;
 
+import io.polyswarm.swarmit.apiclient.BadRequestException;
+import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
 
 /**
- * Indicates an issue with the API Key
- *
+ * Turn the server response on a TestRequest into a TestResponse
  */
-public class NotAuthorizedException extends IOException {
-    /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
-     * specified detail message.
-     *
-     * @param msg the detail message.
-     */
-    public NotAuthorizedException(String msg) {
-        super(msg);
+public class TestResponseHandler implements ResponseHandler<TestResponse> {
+    private final static Logger LOGGER = Logger.getLogger(ArtifactInstanceResponseHandler.class.getName());
+
+    @Override
+    public TestResponse handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, IOException {
+        Integer statusCode = response.getStatusLine().getStatusCode();
+        LOGGER.log(Level.INFO, String.format("%d", statusCode));
+        return new TestResponse(statusCode / 100 == 2);
     }
 }

@@ -26,17 +26,17 @@ package io.polyswarm.swarmit.apiclient;
 import java.io.IOException;
 
 /**
- * Indicates an issue with the API Key
  *
+ * Used up all usages for the current plan
  */
-public class NotAuthorizedException extends IOException {
+public class RateLimitException extends IOException {
     /**
-     * Constructs an instance of <code>NotAuthorizedException</code> with the
+     * Constructs an instance of <code>NotFoundException</code> with the
      * specified detail message.
      *
      * @param msg the detail message.
      */
-    public NotAuthorizedException(String msg) {
+    public RateLimitException(String msg) {
         super(msg);
     }
 }
