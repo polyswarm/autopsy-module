@@ -95,6 +95,8 @@ public abstract class PendingTask {
         addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
         addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
         addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
+        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, artifactInstance.lastScanned);
         // notify UI to update and display this result
 
         for (Assertion assertion : artifactInstance.assertions) {

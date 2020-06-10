@@ -1,4 +1,4 @@
- /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -32,19 +32,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Represents an ArtifactInstance as returned from PolySwarm
- * Only contains relevant data, leaving a lot out
+ * Represents an ArtifactInstance as returned from PolySwarm Only contains relevant data, leaving a lot out
  */
 public class ArtifactInstance {
+
     public final String id;
     public final List<Assertion> assertions;
     public final Detection detection;
     public final String sha256;
     public final String polyscore;
     public final boolean windowClosed;
+    public final String firstSeen;
+    public final String lastScanned;
 
     /**
      * Creates a HashSearchResponse from JSON
+     *
      * @param json JSON from a HashSearch in V2
      * @throws JSONException
      */
@@ -52,7 +55,7 @@ public class ArtifactInstance {
         JSONArray assertions_json = json.getJSONArray("assertions");
         JSONObject detection_json = json.getJSONObject("detections");
         assertions = new ArrayList<>();
-        for (Object obj: assertions_json) {
+        for (Object obj : assertions_json) {
             if (obj instanceof JSONObject) {
                 JSONObject assertion = (JSONObject) obj;
                 assertions.add(new Assertion(assertion));
@@ -66,6 +69,8 @@ public class ArtifactInstance {
         sha256 = json.getString("sha256");
         windowClosed = json.getBoolean("window_closed");
         id = json.getString("id");
+        firstSeen = json.getString("first_seen");
+        lastScanned = json.getString("last_scanned");
     }
 
     @Override
