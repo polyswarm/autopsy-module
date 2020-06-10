@@ -1,4 +1,4 @@
-  /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -28,6 +28,7 @@ import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.NotFoundException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
+import io.polyswarm.swarmit.apiclient.ServerException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
@@ -44,7 +45,9 @@ import org.sleuthkit.datamodel.TskCoreException;
  * Pending task to do a hash search in the ProcessPendingTask background task.
  */
 public class PendingHashLookup extends PendingTask {
+
     private static final Logger LOGGER = Logger.getLogger(PendingHashLookup.class.getName());
+
     private final String md5Hash;
     private final long abstractFileId;
 
@@ -68,7 +71,8 @@ public class PendingHashLookup extends PendingTask {
     }
 
     /**
-     * Makes the hash search request on PolySwarm and updates the blackboard with results, either the ArtifactInstance, or the Not Found message
+     * Makes the hash search request on PolySwarm and updates the blackboard with results, either the ArtifactInstance,
+     * or the Not Found message
      *
      * @param autopsyCase open case
      */
@@ -95,6 +99,8 @@ public class PendingHashLookup extends PendingTask {
             LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
         } catch (NotFoundException ex) {
             updateNotFound(autopsyCase, abstractFileId);
+        } catch (ServerException ex) {
+            LOGGER.log(Level.SEVERE, "Server Error.", ex);
         } finally {
             getDbInstance().deletePendingHashLookup(this);
         }

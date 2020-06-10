@@ -1,4 +1,4 @@
-  /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -26,7 +26,6 @@ package io.polyswarm.swarmit.tasks;
 import io.polyswarm.swarmit.SwarmItController;
 import io.polyswarm.swarmit.SwarmItModule;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
-import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Assertion;
@@ -35,7 +34,6 @@ import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import io.polyswarm.swarmit.datamodel.SwarmItDb;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.ingest.IngestServices;
@@ -52,8 +50,10 @@ import org.sleuthkit.datamodel.TskData;
  * All children classes must implement `process(Case autopsyCase)`
  */
 public abstract class PendingTask {
+
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
-    public abstract boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException;
+
+    public abstract boolean process(Case autopsyCase) throws SwarmItDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
 
     public SwarmItDb getDbInstance() throws SwarmItDbException {
         return SwarmItDb.getInstance();
@@ -72,11 +72,9 @@ public abstract class PendingTask {
     }
 
     /**
-     * Fills in all the blackboard fields under a new BlackboardArtifact.
-     * Also sets the known status of an AbstractFile
+     * Fills in all the blackboard fields under a new BlackboardArtifact. Also sets the known status of an AbstractFile
      *
-     * Fills in the following attributes:
-     * PolyScore, Sha256, Assertions, Malware Families, Tags
+     * Fills in the following attributes: PolyScore, Sha256, Assertions, Malware Families, Tags
      *
      * @param autopsyCase open case
      * @param abstractFileId id of the file in question
@@ -84,7 +82,6 @@ public abstract class PendingTask {
      */
     public static void updateBlackboard(Case autopsyCase, Long abstractFileId, ArtifactInstance artifactInstance, List<Tag> tags) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
-
 
         // Set file to known bad when polyscore > 0.7 and at least 2 malicious responses
         if (artifactInstance.detection.malicious >= 2 && Double.parseDouble(artifactInstance.polyscore) > 0.7d) {
@@ -106,29 +103,28 @@ public abstract class PendingTask {
             }
         }
 
-        for (Assertion assertion: artifactInstance.assertions) {
+        for (Assertion assertion : artifactInstance.assertions) {
             if (!assertion.malwareFamily.isEmpty()) {
                 addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, assertion.malwareFamily);
             }
         }
 
-        for (Tag tag: tags) {
+        for (Tag tag : tags) {
             addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, tag.name);
         }
 
         IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(),
-                                autopsyCase.getSleuthkitCase().getArtifactType(SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME)));
+                autopsyCase.getSleuthkitCase().getArtifactType(SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME)));
     }
 
     /**
-      *
-      * Adds an assertion to the blackboard.
-      * Creates a new BlackboardAttribute.Type per assertion author
-      *
-      * @param autopsyCase open case
-      * @param artifact BlackboardArtifact to add the result
-      * @param assertion Assertion from PolySwarm
-      */
+     *
+     * Adds an assertion to the blackboard. Creates a new BlackboardAttribute.Type per assertion author
+     *
+     * @param autopsyCase open case
+     * @param artifact BlackboardArtifact to add the result
+     * @param assertion Assertion from PolySwarm
+     */
     public static void addAssertion(Case autopsyCase, BlackboardArtifact artifact, Assertion assertion) throws TskCoreException {
         String attributeName = String.format(SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT, assertion.name.toUpperCase());
         SwarmItController.createCustomArtifactAttribute(autopsyCase, attributeName, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, assertion.name);
@@ -136,8 +132,8 @@ public abstract class PendingTask {
     }
 
     /**
-     * Creates a new BlackboardArtifact and adds the the AbstractFile
-     * We create a new one each task so the results are easy to read & easy to associate
+     * Creates a new BlackboardArtifact and adds the the AbstractFile We create a new one each task so the results are
+     * easy to read & easy to associate
      *
      * @param autopsyCase Open case
      * @param abstractFile File in in being updated
@@ -169,6 +165,7 @@ public abstract class PendingTask {
 
     /**
      * Adds a double field to the blackboard
+     *
      * @param autopsyCase open case
      * @param artifact BlackboardArtifact to add the result
      * @param attributeName String name of the attribute to add the data in
@@ -185,6 +182,7 @@ public abstract class PendingTask {
 
     /**
      * Adds an int field to the blackboard
+     *
      * @param autopsyCase open case
      * @param artifact BlackboardArtifact to add the result
      * @param attributeName String name of the attribute to add the data in

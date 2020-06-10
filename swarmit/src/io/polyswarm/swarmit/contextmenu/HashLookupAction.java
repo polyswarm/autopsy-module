@@ -76,8 +76,8 @@ public class HashLookupAction extends AbstractAction {
             } else {
                 LOGGER.log(Level.INFO, "Hash is already pending, not re-submitting.");
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                    Bundle.ScanAction_alreadyPending_message(),
-                    Bundle.ScanAction_messageDialog_title(),
+                    Bundle.HashLookupAction_alreadyPending_message(),
+                    Bundle.HashLookupAction_messageDialog_title(),
                     JOptionPane.ERROR_MESSAGE);
             }
 

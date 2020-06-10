@@ -27,15 +27,9 @@ import java.util.List;
 import org.apache.http.client.ResponseHandler;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
 
-import io.polyswarm.swarmit.apiclient.BadRequestException;
-import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
-import io.polyswarm.swarmit.apiclient.NotFoundException;
-import io.polyswarm.swarmit.apiclient.RateLimitException;
-import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import java.io.IOException;
 import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -45,8 +39,8 @@ import org.json.JSONTokener;
 
 import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
-import io.polyswarm.swarmit.apiclient.NotFoundException;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
+import io.polyswarm.swarmit.apiclient.ServerException;
 import java.util.ArrayList;
 
 import org.apache.http.HttpResponse;
@@ -55,10 +49,11 @@ import org.apache.http.HttpResponse;
  * Parse json response with a list of tags
  */
 public class TagResponseHandler implements ResponseHandler<List<Tag>> {
+
     private final static Logger LOGGER = Logger.getLogger(TagResponseHandler.class.getName());
 
     @Override
-    public List<Tag> handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, RateLimitException, IOException, JSONException {
+    public List<Tag> handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, RateLimitException, ServerException, IOException, JSONException {
         Integer statusCode = response.getStatusLine().getStatusCode();
         HttpEntity responseEntity = response.getEntity();
         String responseString = null;
@@ -77,7 +72,8 @@ public class TagResponseHandler implements ResponseHandler<List<Tag>> {
                 tags.add(new Tag((String) tag));
             }
             return tags;
-
+        } else if (statusCode / 100 == 5) {
+            throw new ServerException(String.format("Received a server error response. Status code: %s, Response: %s", statusCode, responseString));
         } else {
             handle4xx(statusCode, responseString);
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
@@ -92,10 +88,14 @@ public class TagResponseHandler implements ResponseHandler<List<Tag>> {
      */
     private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, ClientProtocolException {
         switch (statusCode) {
-            case 400: throw new BadRequestException(responseString);
-            case 401: throw new NotAuthorizedException(responseString);
-            case 429: throw new RateLimitException(responseString);
-            default: throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
+            case 400:
+                throw new BadRequestException(responseString);
+            case 401:
+                throw new NotAuthorizedException(responseString);
+            case 429:
+                throw new RateLimitException(responseString);
+            default:
+                throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 }

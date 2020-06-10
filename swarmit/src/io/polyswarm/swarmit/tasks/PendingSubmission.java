@@ -28,6 +28,7 @@ import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.NotFoundException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
+import io.polyswarm.swarmit.apiclient.ServerException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
 import io.polyswarm.swarmit.datamodel.SwarmItDbException;
@@ -44,6 +45,7 @@ import org.sleuthkit.datamodel.TskCoreException;
  * Pending task to submit a file & get results in ProcessPendingTask background task
  */
 public class PendingSubmission extends PendingTask {
+
     private static final Logger LOGGER = Logger.getLogger(PendingSubmission.class.getName());
     private final String submissionId;
     private final Long abstractFileID;
@@ -72,26 +74,26 @@ public class PendingSubmission extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void submitFile(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public void submitFile(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, ServerException, IOException, TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.submitFile(abstractFile);
-        getDbInstance().newPendingSubmissionId(abstractFileID, artifactInstance.id);
+        getDbInstance().updatePendingSubmissionId(abstractFileID, artifactInstance.id);
     }
 
     /**
      *
-     * Checks to see if a scan has finished. Fills in the ArtifactInstance if so.
-     * Also, deletes the task on successful scan completion.
+     * Checks to see if a scan has finished. Fills in the ArtifactInstance if so. Also, deletes the task on successful
+     * scan completion.
      *
      * @param autopsyCase open case
      */
-    public void checkSubmission(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public boolean checkSubmission(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Submission {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(submissionId);
         LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
         if (!artifactInstance.windowClosed) {
             // Exit if not done
-            return;
+            return false;
         }
 
         List<Tag> tags;
@@ -102,35 +104,53 @@ public class PendingSubmission extends PendingTask {
             tags = new ArrayList<>();
         }
 
-        try{
+        try {
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
+        } catch (TskCoreException ex) {
+            throw ex;
         } finally {
-            getDbInstance().deletePendingSubmission(this);
+            removeFromDB();
         }
+        return true;
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public boolean process(Case autopsyCase) throws SwarmItDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
         if (submissionId.isEmpty()) {
             try {
                 submitFile(autopsyCase);
             } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
+                removeFromDB();
             } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching submission results: Not found.", ex);
-                return false;
-            }
-            return false;
-        // Check results of files with submission ID
-        } else {
-            try {
-                checkSubmission(autopsyCase);
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching submission results: Not found.", ex);
-                return false;
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
+                removeFromDB();
+            } catch (ServerException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
+                removeFromDB();
             }
             return true;
+            // Check results of files with submission ID
+        } else {
+            try {
+                return checkSubmission(autopsyCase);
+            } catch (NotAuthorizedException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
+                removeFromDB();
+            } catch (NotFoundException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
+                removeFromDB();
+            } catch (ServerException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
+                removeFromDB();
+            }
+            // Return true on these exceptions
+            return true;
         }
+    }
+
+    private void removeFromDB() throws SwarmItDbException {
+        getDbInstance().deletePendingSubmission(this);
     }
 
     @Override

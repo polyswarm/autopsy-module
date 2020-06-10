@@ -29,6 +29,7 @@ import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.NotFoundException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
+import io.polyswarm.swarmit.apiclient.ServerException;
 import java.io.IOException;
 import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
@@ -45,17 +46,19 @@ import org.json.JSONTokener;
  * Parses an ArtifactInstance from the response to a HashSearchRequest
  */
 public class HashSearchResponseHandler implements ResponseHandler<ArtifactInstance> {
+
     private final static Logger LOGGER = Logger.getLogger(HashSearchResponseHandler.class.getName());
 
     @Override
-    public ArtifactInstance handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, RateLimitException, IOException, JSONException {
+    public ArtifactInstance handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, RateLimitException, ServerException, IOException, JSONException {
         Integer statusCode = response.getStatusLine().getStatusCode();
         HttpEntity responseEntity = response.getEntity();
         String responseString = null;
         if (responseEntity != null) {
             responseString = EntityUtils.toString(responseEntity);
         }
-        if (statusCode == 204 ) {
+
+        if (statusCode == 204) {
             throw new NotFoundException(responseString);
         } else if (statusCode / 100 == 2) {
             JSONTokener tokener = new JSONTokener(responseString);
@@ -67,13 +70,15 @@ public class HashSearchResponseHandler implements ResponseHandler<ArtifactInstan
             } else {
                 throw new NotFoundException(responseString);
             }
+        } else if (statusCode / 100 == 5) {
+            throw new ServerException(String.format("Received a server error response. Status code: %s, Response: %s", statusCode, responseString));
         } else {
             handle4xx(statusCode, responseString);
             throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 
-/**
+    /**
      * Throw exceptions based on statusCode
      *
      * @param statusCode Status code from PolySwarm
@@ -81,10 +86,14 @@ public class HashSearchResponseHandler implements ResponseHandler<ArtifactInstan
      */
     private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, ClientProtocolException {
         switch (statusCode) {
-            case 400: throw new BadRequestException(responseString);
-            case 401: throw new NotAuthorizedException(responseString);
-            case 429: throw new RateLimitException(responseString);
-            default: throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
+            case 400:
+                throw new BadRequestException(responseString);
+            case 401:
+                throw new NotAuthorizedException(responseString);
+            case 429:
+                throw new RateLimitException(responseString);
+            default:
+                throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 }

@@ -227,6 +227,15 @@ public final class SwarmItDbSettings {
         createPendingHashLookupTable.append("md5_hash text NOT NULL,");
         createPendingHashLookupTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
         createPendingHashLookupTable.append(")");
+        
+        StringBuilder createPendingRescanTable = new StringBuilder();
+        createPendingRescanTable.append("CREATE TABLE IF NOT EXISTS pending_rescans(");
+        createPendingRescanTable.append("id integer primary key autoincrement NOT NULL,");
+        createPendingRescanTable.append("abstract_file_id integer NOT NULL,");
+        createPendingRescanTable.append("sha256_hash text NOT NULL,");
+        createPendingRescanTable.append("rescan_uuid text NOT NULL,");
+        createPendingRescanTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
+        createPendingRescanTable.append(")");
 
         Connection conn = null;
         try {
@@ -245,6 +254,7 @@ public final class SwarmItDbSettings {
             stmt.execute(createPendingSubmissionsTable.toString());
             stmt.execute(createDbInfoTable.toString());
             stmt.execute(createPendingHashLookupTable.toString());
+            stmt.execute(createPendingRescanTable.toString());
                     
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to initialize sqlite db schema.", ex); // NON-NLS

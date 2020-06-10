@@ -1,5 +1,3 @@
-
-
 /*
  * The MIT License
  *
@@ -28,6 +26,7 @@ package io.polyswarm.swarmit.apiclient;
 import io.polyswarm.swarmit.apiclient.v2.requests.HashSearchRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.ArtifactSubmissionStatusRequest;
+import io.polyswarm.swarmit.apiclient.v2.requests.RescanRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.SubmitArtifactRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.TagRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.TestRequest;
@@ -47,6 +46,7 @@ import org.sleuthkit.datamodel.AbstractFile;
  * Make requests to PolySwarm API and manage responses and parse responses.
  */
 public class ApiClientV2 {
+
     private final static Logger LOGGER = Logger.getLogger(ApiClientV2.class.getName());
 
     /**
@@ -56,16 +56,15 @@ public class ApiClientV2 {
     }
 
     /**
-     * Submit file content to PolySwarm to scan
-     * API endpoint.
+     * Submit file content to PolySwarm to scan API endpoint.
      *
      * @param abstractFile AbstractFile to scan
      * @return ArtifactInstance
      *
      * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance submitFile(AbstractFile abstractFile) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException {
-        try{
+    public static ArtifactInstance submitFile(AbstractFile abstractFile) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException, ServerException {
+        try {
             return new SubmitArtifactRequest(abstractFile).makeRequest();
         } catch (URISyntaxException ex) {
             LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
@@ -76,6 +75,26 @@ public class ApiClientV2 {
         }
     }
 
+    /**
+     * Rescan a file in PolySwarm by sha256 hash
+     *
+     *
+     * @param sha256Hash sha256 hash of the file to rescan
+     * @return ArtifactInstance
+     *
+     * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
+     */
+    public static ArtifactInstance rescanFile(String sha256Hash) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException, ServerException {
+        try {
+            return new RescanRequest(sha256Hash).makeRequest();
+        } catch (URISyntaxException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
+            throw new IOException(ex);
+        } catch (JSONException ex) {
+            LOGGER.log(Level.SEVERE, "Invalid API Response.", ex);
+            throw new IOException(ex);
+        }
+    }
 
     /**
      * Check PolySwarm for results on a given md5 hash
@@ -85,7 +104,7 @@ public class ApiClientV2 {
      *
      * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance searchHash(String md5Hash) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException {
+    public static ArtifactInstance searchHash(String md5Hash) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException, ServerException {
         try {
             return new HashSearchRequest(md5Hash).makeRequest();
         } catch (URISyntaxException ex) {
@@ -105,7 +124,7 @@ public class ApiClientV2 {
      *
      * @throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException
      */
-    public static ArtifactInstance getSubmissionStatus(String submissionId) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException  {
+    public static ArtifactInstance getSubmissionStatus(String submissionId) throws IOException, BadRequestException, RateLimitException, NotAuthorizedException, NotFoundException, ServerException {
         try {
             return new ArtifactSubmissionStatusRequest(submissionId).makeRequest();
         } catch (URISyntaxException ex) {
@@ -117,7 +136,6 @@ public class ApiClientV2 {
         }
     }
 
-
     /**
      * Get a list of Tags for a file
      *
@@ -126,7 +144,7 @@ public class ApiClientV2 {
      *
      * @throws IOException, BadRequestException, RateLimitException
      */
-    public static List<Tag> getTags(ArtifactInstance artifactInstance) throws IOException, BadRequestException, RateLimitException {
+    public static List<Tag> getTags(ArtifactInstance artifactInstance) throws IOException, BadRequestException, RateLimitException, ServerException {
         try {
             return new TagRequest(artifactInstance).makeRequest();
         } catch (URISyntaxException ex) {

@@ -61,7 +61,7 @@ public class ScanAction extends AbstractAction {
                 SwarmItDb instance = SwarmItDb.getInstance();
                 // TODO: here we check to see if a file was already submitted before re-submitting
                 // we should allow the user to click YES/NO to force a re-submit.
-                if (!instance.isPending(abstractFileId)) {
+                if (!instance.isPendingSubmission(abstractFileId)) {
                     // add file info to pending submissions db
                     instance.newPendingSubmission(abstractFileId);
                     LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}.",

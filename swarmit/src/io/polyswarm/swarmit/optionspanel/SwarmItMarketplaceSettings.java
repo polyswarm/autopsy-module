@@ -24,10 +24,8 @@
 package io.polyswarm.swarmit.optionspanel;
 
 import io.polyswarm.swarmit.apiclient.ApiClientV2;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.coreutils.ModuleSettings;
 
@@ -36,12 +34,10 @@ import org.sleuthkit.autopsy.coreutils.ModuleSettings;
  */
 public final class SwarmItMarketplaceSettings {
 
-
     private final static Logger LOGGER = Logger.getLogger(SwarmItMarketplaceSettings.class.getName());
     private final String DEFAULT_API_KEY = ""; // NON-NLS
-    private final String DEFAULT_URL = "https://api.polyswarm.network/v2"; // NON-NLS
+    private final String DEFAULT_URL = "https://api.polyswarm.network/v2/"; // NON-NLS
     private final String DEFAULT_COMMUNITY = "default"; // NON-NLS
-    private final String API_STATUS_ENDPOINT = "status"; // NON-NLS
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
     private final String SETTINGS_TAG_API_URL = "polyswarm.url"; // NON-NLS
     private final String SETTINGS_TAG_API_KEY = "polyswarm.apikey"; // NON-NLS
@@ -117,11 +113,10 @@ public final class SwarmItMarketplaceSettings {
     }
 
     /**
-     * Set the new URL and test if it's a valid URI.
-     * If valid, save it to this instance.
+     * Set the new URL and test if it's a valid URI. If valid, save it to this instance.
      *
      * @param newUrl New URL
-     * @return  true if valid and set, else false
+     * @return true if valid and set, else false
      */
     public boolean setApiUrl(String newUrl) {
 
@@ -144,8 +139,8 @@ public final class SwarmItMarketplaceSettings {
     /**
      * Set the new API Key and test if it's valid.
      *
-     * The service works with API Keys or without, depending on the setup
-     * We allow the user to clear the API key if they want
+     * The service works with API Keys or without, depending on the setup We allow the user to clear the API key if they
+     * want
      *
      * @param newApiKey New API Key
      * @return true if valid and set, else false

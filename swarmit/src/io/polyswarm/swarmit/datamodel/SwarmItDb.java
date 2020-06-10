@@ -24,6 +24,7 @@
 package io.polyswarm.swarmit.datamodel;
 
 import io.polyswarm.swarmit.tasks.PendingHashLookup;
+import io.polyswarm.swarmit.tasks.PendingRescan;
 import io.polyswarm.swarmit.tasks.PendingSubmission;
 
 import java.sql.Connection;
@@ -276,7 +277,7 @@ public class SwarmItDb {
      *
      * @throws SwarmItDbException
      */
-    public void newPendingSubmissionId(Long abstractFileId, String submissionUUID) throws SwarmItDbException {
+    public void updatePendingSubmissionId(Long abstractFileId, String submissionUUID) throws SwarmItDbException {
         try {
             acquireExclusiveLock();
 
@@ -309,7 +310,7 @@ public class SwarmItDb {
      *
      * @throws SwarmItDbException
      */
-    public Boolean isPending(Long abstractFileId) throws SwarmItDbException {
+    public Boolean isPendingSubmission(Long abstractFileId) throws SwarmItDbException {
         try {
             acquireSharedLock();
 
@@ -427,6 +428,200 @@ public class SwarmItDb {
         return new PendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"));
     }
 
+    
+        /**
+     * Add a new file to the pending_submissions table
+     *
+     * @param abstractFileId  Autopsy AbstractFile ID number
+     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     *
+     * @throws SwarmItDbException
+     */
+    public void newPendingRescan(Long abstractFileId, String sha256Hash) throws SwarmItDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "INSERT INTO pending_rescans (abstract_file_id, sha256_hash, rescan_uuid) VALUES (?, ?, ?)";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, abstractFileId);
+                preparedStatement.setString(2, sha256Hash);
+                preparedStatement.setString(3, "");
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error adding new file to pending_rescans table.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+        /**
+     * Add a new file to the pending_submissions table
+     *
+     * @param abstractFileId  Autopsy AbstractFile ID number
+     * @param rescanUuid  UUID returned in result of file submission to PolySwarm API
+     *
+     * @throws SwarmItDbException
+     */
+    public void updatePendingRescanId(Long abstractFileId, String rescanUuid) throws SwarmItDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "UPDATE pending_rescans SET rescan_uuid=? WHERE abstract_file_id=?";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setString(1, rescanUuid);
+                preparedStatement.setLong(2, abstractFileId);
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error updating pending_rescans table.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
+     * Check to see if a file is already in the pending_submissions table.
+     *
+     * @param abstractFileId  Autopsy AbstractFile ID number
+     * @return  Boolean true if in the table, else false.
+     *
+     * @throws SwarmItDbException
+     */
+    public Boolean isPendingRescan(Long abstractFileId) throws SwarmItDbException {
+        try {
+            acquireSharedLock();
+
+            Connection conn = connect();
+
+            Boolean isFound = false;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+            String sql = "SELECT count(*) as quantity FROM pending_rescans WHERE abstract_file_id=?";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, abstractFileId);
+                resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    Long count = resultSet.getLong("quantity");
+                    if (count > 0) {
+                        isFound = true;
+                    }
+                }
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error getting all pending rescans.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeResultSet(resultSet);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+            return isFound;
+        } finally {
+            releaseSharedLock();
+        }
+    }
+
+
+    /**
+     * Get the list of pending submissions from the pending_submissions table.
+     *
+     * @return  List of SwarmItPendingSubmission's.
+     *
+     * @throws SwarmItDbException
+     */
+    public List<PendingRescan> getPendingRescans() throws SwarmItDbException {
+        try {
+            acquireSharedLock();
+
+            Connection conn = connect();
+
+            List<PendingRescan> pendingRescans = new ArrayList<>();
+            PendingRescan psResult;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+            String sql = "SELECT abstract_file_id, sha256_hash, rescan_uuid FROM pending_rescans";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    psResult = getPendingRescanFromResultSet(resultSet);
+                    pendingRescans.add(psResult);
+                }
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error getting all pending rescans.", ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeResultSet(resultSet);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+            return pendingRescans;
+        } finally {
+            releaseSharedLock();
+        }
+    }
+
+    /**
+     * Delete the pending submission from the pending_submissions table.
+     *
+     * @param pendingRescan SwarmItPendingSubmission object
+     *
+     * @throws SwarmItDbException
+     */
+    public void deletePendingRescan(PendingRescan pendingRescan) throws SwarmItDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "DELETE from pending_rescans WHERE abstract_file_id=? AND rescan_uuid=?";
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setLong(1, pendingRescan.getAbstractFileId());
+                preparedStatement.setString(2, pendingRescan.getRescanId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new SwarmItDbException("Error deleteing pending submission: " + pendingRescan.toString(), ex); // NON-NLS
+            } finally {
+                SwarmItDbUtils.closeStatement(preparedStatement);
+                SwarmItDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
+     * Convert a ResultSet into a PendingSubmission object.
+     *
+     * @param resultSet ResultSet row returned from db query
+     * @return  PendingSubmission object
+     * @throws SQLException
+     */
+    private PendingRescan getPendingRescanFromResultSet(ResultSet resultSet) throws SQLException {
+        if (null == resultSet) {
+            return null;
+        }
+
+        return new PendingRescan(resultSet.getLong("abstract_file_id"), resultSet.getString("sha256_hash"), resultSet.getString("rescan_uuid"));
+    }
+    
 
     /**
      * Add a new file to the pending_hashes table

@@ -23,6 +23,9 @@
  */
 package io.polyswarm.swarmit.contextmenu;
 
+import io.polyswarm.swarmit.SwarmItController;
+import io.polyswarm.swarmit.SwarmItModule;
+import io.polyswarm.swarmit.datamodel.SwarmItDbException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,8 +33,10 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.ServiceProvider;
+import org.sleuthkit.autopsy.casemodule.NoCurrentCaseException;
 import org.sleuthkit.autopsy.corecomponentinterfaces.ContextMenuActionsProvider;
 import org.sleuthkit.datamodel.AbstractFile;
+import org.sleuthkit.datamodel.TskCoreException;
 
 /**
  * This creates context menu items for submitting an files/hashes to PolySwarm
@@ -42,7 +47,8 @@ public class SwarmItContextMenuActionsProvider implements ContextMenuActionsProv
 
     @Override
     @org.openide.util.NbBundle.Messages({"SwarmItContextMenuActionsProvider.scan.text=Scan on PolySwarm",
-        "SwarmItContextMenuActionsProvider.hash.text=Lookup Hash on PolySwarm"})
+        "SwarmItContextMenuActionsProvider.hash.text=Lookup Hash on PolySwarm",
+        "SwarmItContextMenuActionsProvider.rescan.text=Rescan on PolySwarm"})
     public List<Action> getActions() {
         ArrayList<Action> actions = new ArrayList<>();
 
@@ -52,13 +58,39 @@ public class SwarmItContextMenuActionsProvider implements ContextMenuActionsProv
 
             if (abstractFile != null && abstractFile.isFile()) {
                 String scanTitle = Bundle.SwarmItContextMenuActionsProvider_scan_text();
-                String hashLookupTitle = Bundle.SwarmItContextMenuActionsProvider_hash_text();
                 actions.add(new ScanAction(scanTitle, abstractFile));
+                
                 if (abstractFile.getMd5Hash() != null) {
+                    String hashLookupTitle = Bundle.SwarmItContextMenuActionsProvider_hash_text();
                     actions.add(new HashLookupAction(hashLookupTitle, abstractFile));
+                }
+                
+                if (isInPolyswarm(abstractFile)) {
+                    String rescanTitle = Bundle.SwarmItContextMenuActionsProvider_rescan_text();
+                    actions.add(new RescanAction(rescanTitle, abstractFile));
                 }
             }
         }
         return actions;
+    }
+    
+    /**
+     * Checks to see if the artifact is in polyswarm. 
+     * 
+     * First, tries to get a polyswarm results BlackboardArtifact. 
+     * If bbartifact, checks to see if there is a polyscore attribute. 
+     * 
+     * It checks for polyscore, because there is a not found attribute that is added when a hash search resutnrs nothing
+     * @param abstractFile file to check
+     * @return 
+     */
+    private boolean isInPolyswarm(AbstractFile abstractFile) {
+        try {
+            SwarmItController controller = SwarmItModule.getController();
+            controller.getSha256(abstractFile);
+            return true;
+        } catch (TskCoreException | NoCurrentCaseException | SwarmItDbException | UnsupportedOperationException ex) {
+            return false;
+        }
     }
 }
