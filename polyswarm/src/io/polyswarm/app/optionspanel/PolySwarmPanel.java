@@ -59,6 +59,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
         apiKeyPanel = new javax.swing.JPanel();
         apiKeyErrorMsgLabel = new javax.swing.JLabel();
         apiKeyTextField = new javax.swing.JTextField();
+        jTextField1 = new javax.swing.JTextField();
         testConnectionButtonPanel = new javax.swing.JPanel();
         testButton = new javax.swing.JButton();
         testConnectionStatusLabel = new javax.swing.JLabel();
@@ -90,7 +91,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                 .addGroup(apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(apiUrlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 588, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(apiUrlErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 576, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(54, Short.MAX_VALUE))
+                .addContainerGap(154, Short.MAX_VALUE))
         );
         apiUrlPanelLayout.setVerticalGroup(
             apiUrlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -117,6 +118,13 @@ final class PolySwarmPanel extends javax.swing.JPanel {
             }
         });
 
+        jTextField1.setEditable(false);
+        jTextField1.setBackground(java.awt.SystemColor.menu);
+        jTextField1.setFont(new java.awt.Font("sansserif", 1, 12)); // NOI18N
+        jTextField1.setForeground(new java.awt.Color(0, 0, 0));
+        jTextField1.setText(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyHelpLabel.text")); // NOI18N
+        jTextField1.setBorder(null);
+
         javax.swing.GroupLayout apiKeyPanelLayout = new javax.swing.GroupLayout(apiKeyPanel);
         apiKeyPanel.setLayout(apiKeyPanelLayout);
         apiKeyPanelLayout.setHorizontalGroup(
@@ -124,18 +132,21 @@ final class PolySwarmPanel extends javax.swing.JPanel {
             .addGroup(apiKeyPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(apiKeyTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 586, Short.MAX_VALUE)
+                        .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 586, Short.MAX_VALUE))
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         apiKeyPanelLayout.setVerticalGroup(
             apiKeyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, apiKeyPanelLayout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(apiKeyTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         org.openide.awt.Mnemonics.setLocalizedText(testButton, org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.testButton.text")); // NOI18N
@@ -209,7 +220,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                     .addComponent(testConnectionButtonPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(apiKeyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(communityPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -413,6 +424,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
     private javax.swing.JLabel communityErrorMsgLabel;
     private javax.swing.JPanel communityPanel;
     private javax.swing.JTextField communityTextField;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JButton testButton;
     private javax.swing.JPanel testConnectionButtonPanel;
     private javax.swing.JLabel testConnectionStatusLabel;
