@@ -51,11 +51,15 @@ public class ScanAction extends AbstractAction {
     @org.openide.util.NbBundle.Messages({"ScanAction.dbError.message=Failed to record submission in pending submissions database.",
         "ScanAction.submitError.message=Failed to submit file to PolySwarm.",
         "ScanAction.messageDialog.title=PolySwarm Scan",
+        "ScanAction.sendFiles.message=Scanning files requires sending the file to PolySwarm.\nDo you want to continue?",
         "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
         if (abstractFile != null) {
             Long abstractFileId = abstractFile.getId();
+            if (!askScanPermission()) {
+                return;
+            }
 
             try {
                 PolySwarmDb instance = PolySwarmDb.getInstance();
@@ -81,6 +85,25 @@ public class ScanAction extends AbstractAction {
                         Bundle.ScanAction_messageDialog_title(),
                         JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    public boolean askScanPermission() {
+        try {
+            if (PolySwarmDb.getInstance().isFirstScan()) {
+                int response = JOptionPane.showConfirmDialog(WindowManager.getDefault().getMainWindow(),
+                        Bundle.ScanAction_sendFiles_message(),
+                        Bundle.ScanAction_messageDialog_title(),
+                        JOptionPane.YES_NO_OPTION);
+
+                if (response == JOptionPane.NO_OPTION) {
+                    return false;
+                }
+                PolySwarmDb.getInstance().approvedScan();
+            }
+            return true;
+        } catch (PolySwarmDbException ex) {
+            return false;
         }
     }
 }

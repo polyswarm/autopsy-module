@@ -71,13 +71,13 @@ public final class PolySwarmDbSettings {
             return false;
         }
 
-        if (createDbDirectory() == false) {
+        if (!createDbDirectory()) {
             LOGGER.log(Level.SEVERE, "Unable to initialize sqlite db. Failed to create base directory."); // NON-NLS
             return false;
         }
 
         boolean result = initializeDatabaseSchema() && insertDefaultDatabaseContent();
-        if (result == false) {
+        if (!result) {
             LOGGER.log(Level.SEVERE, "Unable to initialize sqlite db."); // NON-NLS
         }
         return result;
@@ -128,12 +128,7 @@ public final class PolySwarmDbSettings {
     private boolean dbDirectoryExists() {
         File dbDir = new File(getDbDirectory());
 
-        if (!dbDir.exists()) {
-            return false;
-        } else if (!dbDir.isDirectory()) {
-            return false;
-        }
-        return true;
+        return dbDir.exists() && dbDir.isDirectory();
     }
 
     /**

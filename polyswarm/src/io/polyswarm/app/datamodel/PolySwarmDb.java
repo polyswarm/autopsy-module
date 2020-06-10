@@ -46,6 +46,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 public class PolySwarmDb {
 
     private final static Logger LOGGER = Logger.getLogger(PolySwarmDb.class.getName());
+    private final static String FIRST_SCAN_KEY = "FIRST_SCAN";
     private static PolySwarmDb instance;
     private BasicDataSource connectionPool = null;
     private final PolySwarmDbSettings dbSettings;
@@ -132,6 +133,28 @@ public class PolySwarmDb {
                 throw new PolySwarmDbException("Error getting connectin from connection pool.", ex); // NON-NLS
             }
         }
+    }
+
+    /**
+     * Check if any scans have been performed
+     *
+     * @return boolean, true if first scan
+     */
+    public boolean isFirstScan() {
+        try {
+            String value = getDbInfo(FIRST_SCAN_KEY);
+            return value == null;
+        } catch (PolySwarmDbException e) {
+            return true;
+        }
+    }
+
+    /**
+     * Mark that a scan has been performed
+     *
+     */
+    public void approvedScan() throws PolySwarmDbException {
+        newDbInfo(FIRST_SCAN_KEY, "");
     }
 
     /**

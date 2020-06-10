@@ -103,6 +103,8 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                 .addContainerGap(16, Short.MAX_VALUE))
         );
 
+        apiUrlTextField.getAccessibleContext().setAccessibleName("");
+
         apiKeyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyTitle.text"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
         apiKeyPanel.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
         apiKeyPanel.setName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyTitle.text")); // NOI18N
@@ -179,6 +181,9 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                 .addContainerGap())
         );
 
+        testConnectionStatusLabel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.testConnectionStatusLabel.text")); // NOI18N
+        testConnectionStatusLabel.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.testConnectionStatusLabel.AccessibleContext.accessibleDescription")); // NOI18N
+
         communityPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.communityPanel.border.title"), javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 12))); // NOI18N
         communityPanel.setFont(new java.awt.Font("Monospaced", 0, 13)); // NOI18N
 
@@ -236,10 +241,9 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                 .addGap(35, 35, 35))
         );
 
-        apiUrlPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiUrlPanel.AccessibleContext.accessibleName")); // NOI18N
-        apiUrlPanel.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiUrlPanel.AccessibleContext.accessibleDescription")); // NOI18N
-        apiKeyPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyPanel.AccessibleContext.accessibleName")); // NOI18N
-        apiKeyPanel.getAccessibleContext().setAccessibleDescription(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyPanel.AccessibleContext.accessibleDescription")); // NOI18N
+        apiUrlPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiUrlTitle.text")); // NOI18N
+        apiKeyPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyTitle.text")); // NOI18N
+        apiKeyPanel.getAccessibleContext().setAccessibleDescription("");
         communityPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.communityTitle.text")); // NOI18N
     }// </editor-fold>//GEN-END:initComponents
 
