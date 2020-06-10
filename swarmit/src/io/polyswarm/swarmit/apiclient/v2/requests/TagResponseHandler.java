@@ -61,22 +61,23 @@ public class TagResponseHandler implements ResponseHandler<List<Tag>> {
             responseString = EntityUtils.toString(responseEntity);
         }
 
-        if (statusCode / 100 == 2) {
-            JSONTokener tokener = new JSONTokener(responseString);
-            JSONObject output = new JSONObject(tokener);
-            JSONObject result = output.getJSONObject("result");
-            JSONArray jsonArray = result.getJSONArray("tags");
+        switch (statusCode / 100) {
+            case 2:
+                JSONTokener tokener = new JSONTokener(responseString);
+                JSONObject output = new JSONObject(tokener);
+                JSONObject result = output.getJSONObject("result");
+                JSONArray jsonArray = result.getJSONArray("tags");
 
-            List<Tag> tags = new ArrayList<>();
-            for (Object tag : jsonArray) {
-                tags.add(new Tag((String) tag));
-            }
-            return tags;
-        } else if (statusCode / 100 == 5) {
-            throw new ServerException(String.format("Received a server error response. Status code: %s, Response: %s", statusCode, responseString));
-        } else {
-            handle4xx(statusCode, responseString);
-            throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
+                List<Tag> tags = new ArrayList<>();
+                for (Object tag : jsonArray) {
+                    tags.add(new Tag((String) tag));
+                }
+                return tags;
+            case 5:
+                throw new ServerException(String.format("Received a server error response. Status code: %s, Response: %s", statusCode, responseString));
+            default:
+                handle4xx(statusCode, responseString);
+                throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 
