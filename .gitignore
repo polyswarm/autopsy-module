@@ -21,7 +21,10 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-/swarmit/nbproject/private/
+/polyswarm/nbproject/private/
+/polyswarm/nbproject/private/
+/polyswarm/build/
+/swarmit/release/modules
 /swarmit/build/
 /swarmit/release/modules
 
