@@ -23,7 +23,7 @@
  */
 package io.polyswarm.swarmit;
 
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
@@ -37,17 +37,18 @@ import org.sleuthkit.datamodel.TskCoreException;
 /**
  *
  */
-@Messages({"SwarmItModule.moduleName=SwarmIt"})
-public class SwarmItModule {
-    private static final Logger LOGGER = Logger.getLogger(SwarmItModule.class.getName());
-    private static final String MODULE_NAME = Bundle.SwarmItModule_moduleName();
-    private static SwarmItController controller;
+@Messages({"PolySwarmModule.moduleName=PolySwarm"})
+public class PolySwarmModule {
+
+    private static final Logger LOGGER = Logger.getLogger(PolySwarmModule.class.getName());
+    private static final String MODULE_NAME = Bundle.PolySwarmModule_moduleName();
+    private static PolySwarmController controller;
     private static final Object CONTROLLER_LOCK = new Object();
 
-    public static SwarmItController getController() throws TskCoreException, NoCurrentCaseException, SwarmItDbException {
+    public static PolySwarmController getController() throws TskCoreException, NoCurrentCaseException, PolySwarmDbException {
         synchronized (CONTROLLER_LOCK) {
             if (controller == null) {
-                controller = new SwarmItController(Case.getCurrentCaseThrows());
+                controller = new PolySwarmController(Case.getCurrentCaseThrows());
             }
             return controller;
         }
@@ -57,7 +58,7 @@ public class SwarmItModule {
      * Called by the run method in the OnStart class.
      */
     static void onStart() {
-        LOGGER.log(Level.INFO, "Starting SwarmIt Module."); // NON-NLS
+        LOGGER.log(Level.INFO, "Starting PolySwarm Module."); // NON-NLS
 
         Case.addPropertyChangeListener(new CaseEventListener());
     }
@@ -67,7 +68,7 @@ public class SwarmItModule {
     }
 
     /* only static utilities, do not allow instantiation */
-    private SwarmItModule() {
+    private PolySwarmModule() {
     }
 
     /**
@@ -86,17 +87,17 @@ public class SwarmItModule {
                 Case.removePropertyChangeListener(this);
                 return;
             }
-            SwarmItController con;
+            PolySwarmController con;
             try {
                 con = getController();
             } catch (NoCurrentCaseException ex) {
-                LOGGER.log(Level.SEVERE, "Attempted to access SwarmIt Module with no case open.", ex); //NON-NLS
+                LOGGER.log(Level.SEVERE, "Attempted to access PolySwarm Module with no case open.", ex); //NON-NLS
                 return;
             } catch (TskCoreException ex) {
-                LOGGER.log(Level.SEVERE, "Error getting SwarmItController.", ex); //NON-NLS
+                LOGGER.log(Level.SEVERE, "Error getting PolySwarmController.", ex); //NON-NLS
                 return;
-            } catch (SwarmItDbException ex) {
-                LOGGER.log(Level.SEVERE, "Error getting SwarmitController's database.", ex); // NON-NLS
+            } catch (PolySwarmDbException ex) {
+                LOGGER.log(Level.SEVERE, "Error getting PolySwarmController's database.", ex); // NON-NLS
             }
             switch (Case.Events.valueOf(evt.getPropertyName())) {
                 case CURRENT_CASE:
@@ -111,11 +112,11 @@ public class SwarmItModule {
                         if (newCase != null) {
                             // a new case has been opened: connect db, start worker thread
                             try {
-                                controller = new SwarmItController(newCase);
+                                controller = new PolySwarmController(newCase);
                             } catch (TskCoreException ex) {
                                 LOGGER.log(Level.SEVERE, "Error changing case in ImageGallery.", ex);
-                            } catch (SwarmItDbException ex) {
-                                LOGGER.log(Level.SEVERE, "Error getting SwarmitController's database.", ex); // NON-NLS
+                            } catch (PolySwarmDbException ex) {
+                                LOGGER.log(Level.SEVERE, "Error getting PolySwarmController's database.", ex); // NON-NLS
                             }
                         }
                     }

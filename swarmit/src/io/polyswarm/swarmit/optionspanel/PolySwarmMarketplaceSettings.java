@@ -32,9 +32,9 @@ import org.sleuthkit.autopsy.coreutils.ModuleSettings;
 /**
  * Manage settings for the connection to the PolySwarm marketplace
  */
-public final class SwarmItMarketplaceSettings {
+public final class PolySwarmMarketplaceSettings {
 
-    private final static Logger LOGGER = Logger.getLogger(SwarmItMarketplaceSettings.class.getName());
+    private final static Logger LOGGER = Logger.getLogger(PolySwarmMarketplaceSettings.class.getName());
     private final String DEFAULT_API_KEY = ""; // NON-NLS
     private final String DEFAULT_URL = "https://api.polyswarm.network/v2/"; // NON-NLS
     private final String DEFAULT_COMMUNITY = "default"; // NON-NLS
@@ -46,7 +46,7 @@ public final class SwarmItMarketplaceSettings {
     private String apiKey;
     private String community;
 
-    public SwarmItMarketplaceSettings() {
+    public PolySwarmMarketplaceSettings() {
         loadSettings();
     }
 

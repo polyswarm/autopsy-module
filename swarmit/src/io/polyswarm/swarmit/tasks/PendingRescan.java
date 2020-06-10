@@ -31,7 +31,7 @@ import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.ServerException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +79,7 @@ public class PendingRescan extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void submitRescan() throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public void submitRescan() throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         ArtifactInstance artifactInstance = ApiClientV2.rescanFile(sha256Hash);
         getDbInstance().updatePendingRescanId(abstractFileID, artifactInstance.id);
     }
@@ -91,7 +91,7 @@ public class PendingRescan extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public boolean checkSubmission(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public boolean checkSubmission(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Rescan {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(rescanId);
         LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
@@ -119,7 +119,7 @@ public class PendingRescan extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws SwarmItDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
         if (rescanId.isEmpty()) {
             try {
                 submitRescan();
@@ -153,7 +153,7 @@ public class PendingRescan extends PendingTask {
         }
     }
 
-    private void removeFromDB() throws SwarmItDbException {
+    private void removeFromDB() throws PolySwarmDbException {
         getDbInstance().deletePendingRescan(this);
     }
 

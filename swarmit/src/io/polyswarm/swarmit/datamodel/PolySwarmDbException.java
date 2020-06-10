@@ -26,7 +26,7 @@ package io.polyswarm.swarmit.datamodel;
 /**
  * An exception thrown by sqlite db settings.
  */
-public class SwarmItDbException extends Exception {
+public class PolySwarmDbException extends Exception {
     
     private static final long serialVersionUID = 1L;
     
@@ -34,7 +34,7 @@ public class SwarmItDbException extends Exception {
      * COnstructs an exception to be thrown
      * @param message The exception message
      */
-    public SwarmItDbException(String message) {
+    public PolySwarmDbException(String message) {
         super(message);
     }
     
@@ -44,7 +44,7 @@ public class SwarmItDbException extends Exception {
      * @param message The exception message
      * @param cause   The exception cause
      */
-    public SwarmItDbException(String message, Throwable cause) {
+    public PolySwarmDbException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -25,8 +25,8 @@ package io.polyswarm.swarmit.tasks;
 
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +44,11 @@ import org.sleuthkit.datamodel.TskCoreException;
 public class ProcessPendingTask extends BackgroundTask {
 
     private static final Logger LOGGER = Logger.getLogger(ProcessPendingTask.class.getName());
-    private final SwarmItDb dbInstance;
+    private final PolySwarmDb dbInstance;
     private final Case autopsyCase;
     private ProgressHandle progressHandle;
 
-    public SwarmItDb getDbInstance() {
+    public PolySwarmDb getDbInstance() {
         return dbInstance;
     }
 
@@ -56,7 +56,7 @@ public class ProcessPendingTask extends BackgroundTask {
         return autopsyCase;
     }
 
-    public ProcessPendingTask(SwarmItDb dbInstance, Case autopsyCase) {
+    public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
         super();
         this.dbInstance = dbInstance;
         this.autopsyCase = autopsyCase;
@@ -66,7 +66,7 @@ public class ProcessPendingTask extends BackgroundTask {
     public void run() {
         try {
             // check db for any pending tasks
-            SwarmItDb db = getDbInstance();
+            PolySwarmDb db = getDbInstance();
 
             List<PendingTask> pendingList = new ArrayList<>();
             pendingList.addAll(db.getPendingHashLookups());
@@ -94,7 +94,7 @@ public class ProcessPendingTask extends BackgroundTask {
                     LOGGER.log(Level.SEVERE, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
                 } catch (BadRequestException ex) {
                     LOGGER.log(Level.SEVERE, "Bad Request", ex);
-                } catch (SwarmItDbException ex) {
+                } catch (PolySwarmDbException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to update pending task in db.", ex);
                 } catch (TskCoreException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
@@ -106,7 +106,7 @@ public class ProcessPendingTask extends BackgroundTask {
             }
             LOGGER.log(Level.INFO, "Completed a pass on pending tasks.");
 
-        } catch (SwarmItDbException ex) {
+        } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Failed to get list of pending tasks from db.", ex);
         }
     }

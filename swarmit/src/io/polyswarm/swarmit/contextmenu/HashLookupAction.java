@@ -23,8 +23,8 @@
  */
 package io.polyswarm.swarmit.contextmenu;
 
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +66,7 @@ public class HashLookupAction extends AbstractAction {
         try {
             String md5Hash = abstractFile.getMd5Hash();
             Long abstractFileId = abstractFile.getId();
-            SwarmItDb instance = SwarmItDb.getInstance();
+            PolySwarmDb instance = PolySwarmDb.getInstance();
             if (!instance.isPendingHashLookup(abstractFileId)) {
                 // add hash to pending search
                 instance.newPendingHashLookup(abstractFileId, md5Hash);
@@ -81,7 +81,7 @@ public class HashLookupAction extends AbstractAction {
                     JOptionPane.ERROR_MESSAGE);
             }
 
-        } catch (SwarmItDbException ex) {
+        } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Error adding new hash lookup to sqlite db.", ex);
             JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
                     Bundle.HashLookupAction_dbError_message(),

@@ -35,8 +35,8 @@ import java.util.logging.Logger;
  * Static functions to manage initialization, version, and closing of the 
  * database and connections.
  */
-public class SwarmItDbUtils {
-    private final static Logger LOGGER = Logger.getLogger(SwarmItDbUtils.class.getName());
+public class PolySwarmDbUtils {
+    private final static Logger LOGGER = Logger.getLogger(PolySwarmDbUtils.class.getName());
 
     /**
      * Close the statement.
@@ -138,8 +138,8 @@ public class SwarmItDbUtils {
             LOGGER.log(Level.SEVERE, "Error adding schema version to db_info table.", ex); // NON-NLS
             return false;
         } finally {
-            SwarmItDbUtils.closeStatement(preparedStatement);
-            SwarmItDbUtils.closeResultSet(resultSet);
+            PolySwarmDbUtils.closeStatement(preparedStatement);
+            PolySwarmDbUtils.closeResultSet(resultSet);
         }
         
         return true;
@@ -168,7 +168,7 @@ public class SwarmItDbUtils {
         } catch (SQLException ex) {
             return false;
         } finally {
-            SwarmItDbUtils.closeResultSet(resultSet);
+            PolySwarmDbUtils.closeResultSet(resultSet);
         }
         return true;
     }
@@ -195,7 +195,7 @@ public class SwarmItDbUtils {
         } catch (SQLException ex) {
             return false;
         } finally {
-            SwarmItDbUtils.closeResultSet(resultSet);
+            PolySwarmDbUtils.closeResultSet(resultSet);
         }
 
         return false;

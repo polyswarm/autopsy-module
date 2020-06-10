@@ -31,7 +31,7 @@ import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.ServerException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +76,7 @@ public class PendingHashLookup extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void lookupHash(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public void lookupHash(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Looking up Hash {0}", md5Hash);
         try {
             ArtifactInstance artifactInstance = ApiClientV2.searchHash(md5Hash);
@@ -107,7 +107,7 @@ public class PendingHashLookup extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         lookupHash(autopsyCase);
         return true;
     }

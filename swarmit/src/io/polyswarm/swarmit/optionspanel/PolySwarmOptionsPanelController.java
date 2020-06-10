@@ -33,19 +33,19 @@ import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
 
 @OptionsPanelController.TopLevelRegistration(
-        categoryName = "#OptionsCategory_Name_SwarmIt",
+        categoryName = "#OptionsCategory_Name_PolySwarm",
         position = 25,
         iconBase = "io/polyswarm/swarmit/images/polyswarm-logo-32x32.png",
-        keywords = "#OptionsCategory_Keywords_SwarmIt",
-        keywordsCategory = "SwarmIt"
+        keywords = "#OptionsCategory_Keywords_PolySwarm",
+        keywordsCategory = "PolySwarm"
 )
-@org.openide.util.NbBundle.Messages({"OptionsCategory_Name_SwarmIt=SwarmIt", "OptionsCategory_Keywords_SwarmIt=PolySwarm Marketplace Scanning"})
-public final class SwarmItOptionsPanelController extends OptionsPanelController {
+@org.openide.util.NbBundle.Messages({"OptionsCategory_Name_PolySwarm=PolySwarm", "OptionsCategory_Keywords_PolySwarm=PolySwarm Marketplace Scanning SwarmIt"})
+public final class PolySwarmOptionsPanelController extends OptionsPanelController {
 
-    private SwarmItPanel panel;
+    private PolySwarmPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
-    private static final Logger LOGGER = Logger.getLogger(SwarmItOptionsPanelController.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PolySwarmOptionsPanelController.class.getName());
 
     @Override
     public void update() {
@@ -96,9 +96,9 @@ public final class SwarmItOptionsPanelController extends OptionsPanelController 
         pcs.removePropertyChangeListener(l);
     }
 
-    private SwarmItPanel getPanel() {
+    private PolySwarmPanel getPanel() {
         if (panel == null) {
-            panel = new SwarmItPanel(this);
+            panel = new PolySwarmPanel(this);
         }
         return panel;
     }
@@ -106,18 +106,18 @@ public final class SwarmItOptionsPanelController extends OptionsPanelController 
     void changed() {
         if (!changed) {
             changed = true;
-            
+
             try {
                 pcs.firePropertyChange(OptionsPanelController.PROP_CHANGED, false, true);
             } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_CHANGED.", e);            
+                LOGGER.log(Level.SEVERE, "PolySwarmOptionsPanelController listener threw exception on PROP_CHANGED.", e);
             }
         }
-        
+
         try {
             pcs.firePropertyChange(OptionsPanelController.PROP_VALID, null, null);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "SwarmItOptionsPanelController listener threw exception on PROP_VALID.", e);
+            LOGGER.log(Level.SEVERE, "PolySwarmOptionsPanelController listener threw exception on PROP_VALID.", e);
         }
     }
 }

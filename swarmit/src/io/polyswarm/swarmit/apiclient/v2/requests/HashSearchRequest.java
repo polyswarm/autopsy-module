@@ -27,7 +27,7 @@ import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
 import io.polyswarm.swarmit.apiclient.NotFoundException;
-import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
+import io.polyswarm.swarmit.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
@@ -56,7 +56,7 @@ public class HashSearchRequest implements Request<ArtifactInstance> {
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException, NotFoundException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
+            PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
 
             String uri = String.format("%ssearch/hash/md5", apiSettings.getApiUrl());
             URIBuilder builder = new URIBuilder(uri);

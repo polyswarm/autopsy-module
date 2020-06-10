@@ -38,30 +38,30 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 import org.apache.commons.dbcp2.BasicDataSource;
 
-
 /**
  * Manage the database content and connections to the database.
  *
  * Note: code largely based off of Autopsy's centralrepository sqlite implementation.
  */
-public class SwarmItDb {
-    private final static Logger LOGGER = Logger.getLogger(SwarmItDb.class.getName());
-    private static SwarmItDb instance;
+public class PolySwarmDb {
+
+    private final static Logger LOGGER = Logger.getLogger(PolySwarmDb.class.getName());
+    private static PolySwarmDb instance;
     private BasicDataSource connectionPool = null;
-    private final SwarmItDbSettings dbSettings;
+    private final PolySwarmDbSettings dbSettings;
 
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock(true);
 
     /**
-     * Get the singleton instance of SwarmItDb
+     * Get the singleton instance of PolySwarmDb
      *
-     * @return the singleton instance of SwarmItDb
+     * @return the singleton instance of PolySwarmDb
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public synchronized static SwarmItDb getInstance() throws SwarmItDbException {
+    public synchronized static PolySwarmDb getInstance() throws PolySwarmDbException {
         if (instance == null) {
-            instance = new SwarmItDb();
+            instance = new PolySwarmDb();
         }
 
         return instance;
@@ -70,14 +70,14 @@ public class SwarmItDb {
     /**
      * Constructor. Loads db settings.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    private SwarmItDb() throws SwarmItDbException {
-        dbSettings = new SwarmItDbSettings();
+    private PolySwarmDb() throws PolySwarmDbException {
+        dbSettings = new PolySwarmDbSettings();
         dbSettings.initialize();
     }
 
-    public void shutdownConnections() throws SwarmItDbException {
+    public void shutdownConnections() throws PolySwarmDbException {
         try {
             synchronized (this) {
                 if (null != connectionPool) {
@@ -88,18 +88,18 @@ public class SwarmItDb {
             }
             // TODO: clearCaches(); // where did this come from?
         } catch (SQLException ex) {
-            throw new SwarmItDbException("Failed to close existing database connections.", ex); // NON-NLS
+            throw new PolySwarmDbException("Failed to close existing database connections.", ex); // NON-NLS
         }
     }
 
     /**
      * Setup a connection pool for sqlite db connections.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    private void setupConnectionPool() throws SwarmItDbException {
+    private void setupConnectionPool() throws PolySwarmDbException {
         if (dbSettings.dbFileExists() == false) {
-            throw new SwarmItDbException("Swarmit database missing."); // NON-NLS
+            throw new PolySwarmDbException("PolySwarm database missing."); // NON-NLS
         }
 
         connectionPool = new BasicDataSource();
@@ -118,9 +118,9 @@ public class SwarmItDb {
      *
      * @return A connection from the connection pool
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    protected Connection connect() throws SwarmItDbException {
+    protected Connection connect() throws PolySwarmDbException {
         synchronized (this) {
             if (connectionPool == null) {
                 setupConnectionPool();
@@ -129,7 +129,7 @@ public class SwarmItDb {
             try {
                 return connectionPool.getConnection();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting connectin from connection pool.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting connectin from connection pool.", ex); // NON-NLS
             }
         }
     }
@@ -137,12 +137,12 @@ public class SwarmItDb {
     /**
      * Add a new name/value pair to the db_info table
      *
-     * @param name  Key to set
+     * @param name Key to set
      * @param value Value to set for the name/value key pair.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void newDbInfo(String name, String value) throws SwarmItDbException {
+    public void newDbInfo(String name, String value) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -157,10 +157,10 @@ public class SwarmItDb {
                 preparedStatement.setString(2, value);
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error adding name/value pair to db_info.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error adding name/value pair to db_info.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -172,11 +172,11 @@ public class SwarmItDb {
      *
      * @param name Key to lookup
      *
-     * @return  Value associated with the name/value key pair.
+     * @return Value associated with the name/value key pair.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public String getDbInfo(String name) throws SwarmItDbException {
+    public String getDbInfo(String name) throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -194,11 +194,11 @@ public class SwarmItDb {
                     value = resultSet.getString("value");
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting value for name.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting value for name.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return value;
         } finally {
@@ -209,10 +209,10 @@ public class SwarmItDb {
     /**
      * Update the value for a name in the db_info table.
      *
-     * @param name  Key to lookup
+     * @param name Key to lookup
      * @param value Value to set for the name/value key pair
      */
-    public void updateDbInfo(String name, String value) throws SwarmItDbException {
+    public void updateDbInfo(String name, String value) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -226,10 +226,10 @@ public class SwarmItDb {
                 preparedStatement.setString(2, name);
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error updating value for name.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error updating value for name.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -239,12 +239,12 @@ public class SwarmItDb {
     /**
      * Add a new file to the pending_submissions table
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @param submissionUUID UUID returned in result of file submission to PolySwarm API
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void newPendingSubmission(Long abstractFileId) throws SwarmItDbException {
+    public void newPendingSubmission(Long abstractFileId) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -259,25 +259,25 @@ public class SwarmItDb {
                 preparedStatement.setString(2, "");
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error adding new file to pending_submissions table.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error adding new file to pending_submissions table.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
         }
     }
 
-        /**
+    /**
      * Add a new file to the pending_submissions table
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @param submissionUUID UUID returned in result of file submission to PolySwarm API
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void updatePendingSubmissionId(Long abstractFileId, String submissionUUID) throws SwarmItDbException {
+    public void updatePendingSubmissionId(Long abstractFileId, String submissionUUID) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -292,10 +292,10 @@ public class SwarmItDb {
                 preparedStatement.setLong(2, abstractFileId);
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error updating pending_submissions table.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error updating pending_submissions table.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -305,12 +305,12 @@ public class SwarmItDb {
     /**
      * Check to see if a file is already in the pending_submissions table.
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @return  Boolean true if in the table, else false.
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @return Boolean true if in the table, else false.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public Boolean isPendingSubmission(Long abstractFileId) throws SwarmItDbException {
+    public Boolean isPendingSubmission(Long abstractFileId) throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -331,11 +331,11 @@ public class SwarmItDb {
                     }
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending submissions.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending submissions.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return isFound;
         } finally {
@@ -343,15 +343,14 @@ public class SwarmItDb {
         }
     }
 
-
     /**
      * Get the list of pending submissions from the pending_submissions table.
      *
-     * @return  List of SwarmItPendingSubmission's.
+     * @return List of PendingSubmission's.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public List<PendingSubmission> getPendingSubmissions() throws SwarmItDbException {
+    public List<PendingSubmission> getPendingSubmissions() throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -370,11 +369,11 @@ public class SwarmItDb {
                     pendingSubmissions.add(psResult);
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending submissions.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending submissions.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return pendingSubmissions;
         } finally {
@@ -385,11 +384,11 @@ public class SwarmItDb {
     /**
      * Delete the pending submission from the pending_submissions table.
      *
-     * @param pendingSubmission SwarmItPendingSubmission object
+     * @param pendingSubmission PendingSubmission object
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void deletePendingSubmission(PendingSubmission pendingSubmission) throws SwarmItDbException {
+    public void deletePendingSubmission(PendingSubmission pendingSubmission) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -403,10 +402,10 @@ public class SwarmItDb {
                 preparedStatement.setString(2, pendingSubmission.getSubmissionId());
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error deleteing pending submission: " + pendingSubmission.toString(), ex); // NON-NLS
+                throw new PolySwarmDbException("Error deleteing pending submission: " + pendingSubmission.toString(), ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -417,7 +416,7 @@ public class SwarmItDb {
      * Convert a ResultSet into a PendingSubmission object.
      *
      * @param resultSet ResultSet row returned from db query
-     * @return  PendingSubmission object
+     * @return PendingSubmission object
      * @throws SQLException
      */
     private PendingSubmission getPendingSubmissionFromResultSet(ResultSet resultSet) throws SQLException {
@@ -428,16 +427,15 @@ public class SwarmItDb {
         return new PendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"));
     }
 
-    
-        /**
+    /**
      * Add a new file to the pending_submissions table
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param submissionUUID  UUID returned in result of file submission to PolySwarm API
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @param submissionUUID UUID returned in result of file submission to PolySwarm API
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void newPendingRescan(Long abstractFileId, String sha256Hash) throws SwarmItDbException {
+    public void newPendingRescan(Long abstractFileId, String sha256Hash) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -453,25 +451,25 @@ public class SwarmItDb {
                 preparedStatement.setString(3, "");
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error adding new file to pending_rescans table.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error adding new file to pending_rescans table.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
         }
     }
 
-        /**
+    /**
      * Add a new file to the pending_submissions table
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param rescanUuid  UUID returned in result of file submission to PolySwarm API
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @param rescanUuid UUID returned in result of file submission to PolySwarm API
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void updatePendingRescanId(Long abstractFileId, String rescanUuid) throws SwarmItDbException {
+    public void updatePendingRescanId(Long abstractFileId, String rescanUuid) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -486,10 +484,10 @@ public class SwarmItDb {
                 preparedStatement.setLong(2, abstractFileId);
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error updating pending_rescans table.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error updating pending_rescans table.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -499,12 +497,12 @@ public class SwarmItDb {
     /**
      * Check to see if a file is already in the pending_submissions table.
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @return  Boolean true if in the table, else false.
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @return Boolean true if in the table, else false.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public Boolean isPendingRescan(Long abstractFileId) throws SwarmItDbException {
+    public Boolean isPendingRescan(Long abstractFileId) throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -525,11 +523,11 @@ public class SwarmItDb {
                     }
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending rescans.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending rescans.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return isFound;
         } finally {
@@ -537,15 +535,14 @@ public class SwarmItDb {
         }
     }
 
-
     /**
      * Get the list of pending submissions from the pending_submissions table.
      *
-     * @return  List of SwarmItPendingSubmission's.
+     * @return List of PendingSubmission's.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public List<PendingRescan> getPendingRescans() throws SwarmItDbException {
+    public List<PendingRescan> getPendingRescans() throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -564,11 +561,11 @@ public class SwarmItDb {
                     pendingRescans.add(psResult);
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending rescans.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending rescans.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return pendingRescans;
         } finally {
@@ -579,11 +576,11 @@ public class SwarmItDb {
     /**
      * Delete the pending submission from the pending_submissions table.
      *
-     * @param pendingRescan SwarmItPendingSubmission object
+     * @param pendingRescan PendingRescan object
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void deletePendingRescan(PendingRescan pendingRescan) throws SwarmItDbException {
+    public void deletePendingRescan(PendingRescan pendingRescan) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -597,10 +594,10 @@ public class SwarmItDb {
                 preparedStatement.setString(2, pendingRescan.getRescanId());
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error deleteing pending submission: " + pendingRescan.toString(), ex); // NON-NLS
+                throw new PolySwarmDbException("Error deleteing pending submission: " + pendingRescan.toString(), ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
@@ -611,7 +608,7 @@ public class SwarmItDb {
      * Convert a ResultSet into a PendingSubmission object.
      *
      * @param resultSet ResultSet row returned from db query
-     * @return  PendingSubmission object
+     * @return PendingSubmission object
      * @throws SQLException
      */
     private PendingRescan getPendingRescanFromResultSet(ResultSet resultSet) throws SQLException {
@@ -621,17 +618,16 @@ public class SwarmItDb {
 
         return new PendingRescan(resultSet.getLong("abstract_file_id"), resultSet.getString("sha256_hash"), resultSet.getString("rescan_uuid"));
     }
-    
 
     /**
      * Add a new file to the pending_hashes table
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @param md5Hash  hash of the file
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @param md5Hash hash of the file
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void newPendingHashLookup(Long abstractFileId, String md5Hash) throws SwarmItDbException {
+    public void newPendingHashLookup(Long abstractFileId, String md5Hash) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -646,26 +642,25 @@ public class SwarmItDb {
                 preparedStatement.setString(2, md5Hash);
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error adding new file to pending_hashes table.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error adding new file to pending_hashes table.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
         }
     }
 
-
-        /**
+    /**
      * Check to see if a hash is already in the pending_hashes table.
      *
-     * @param abstractFileId  Autopsy AbstractFile ID number
-     * @return  Boolean true if in the table, else false.
+     * @param abstractFileId Autopsy AbstractFile ID number
+     * @return Boolean true if in the table, else false.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public Boolean isPendingHashLookup(Long abstractFileId) throws SwarmItDbException {
+    public Boolean isPendingHashLookup(Long abstractFileId) throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -686,11 +681,11 @@ public class SwarmItDb {
                     }
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending hashes.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending hashes.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return isFound;
         } finally {
@@ -698,15 +693,14 @@ public class SwarmItDb {
         }
     }
 
-
     /**
      * Get the list of pending hashes from the pending_hashes table.
      *
-     * @return  List of SwarmItPendingHashLookups's.
+     * @return List of PendingHashLookups's.
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public List<PendingHashLookup> getPendingHashLookups() throws SwarmItDbException {
+    public List<PendingHashLookup> getPendingHashLookups() throws PolySwarmDbException {
         try {
             acquireSharedLock();
 
@@ -725,11 +719,11 @@ public class SwarmItDb {
                     pendingHashLookups.add(psResult);
                 }
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error getting all pending submissions.", ex); // NON-NLS
+                throw new PolySwarmDbException("Error getting all pending submissions.", ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeResultSet(resultSet);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeResultSet(resultSet);
+                PolySwarmDbUtils.closeConnection(conn);
             }
             return pendingHashLookups;
         } finally {
@@ -737,15 +731,14 @@ public class SwarmItDb {
         }
     }
 
-
-     /**
+    /**
      * Delete the pending submission from the pending_submissions table.
      *
-     * @param pendingSubmission SwarmItPendingSubmission object
+     * @param pendingSubmission PendingSubmission object
      *
-     * @throws SwarmItDbException
+     * @throws PolySwarmDbException
      */
-    public void deletePendingHashLookup(PendingHashLookup pendingHashLookup) throws SwarmItDbException {
+    public void deletePendingHashLookup(PendingHashLookup pendingHashLookup) throws PolySwarmDbException {
         try {
             acquireExclusiveLock();
 
@@ -759,23 +752,21 @@ public class SwarmItDb {
                 preparedStatement.setString(2, pendingHashLookup.getMd5Hash());
                 preparedStatement.executeUpdate();
             } catch (SQLException ex) {
-                throw new SwarmItDbException("Error deleteing pending hash look up: " + pendingHashLookup.toString(), ex); // NON-NLS
+                throw new PolySwarmDbException("Error deleteing pending hash look up: " + pendingHashLookup.toString(), ex); // NON-NLS
             } finally {
-                SwarmItDbUtils.closeStatement(preparedStatement);
-                SwarmItDbUtils.closeConnection(conn);
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
             }
         } finally {
             releaseExclusiveLock();
         }
     }
 
-
-
     /**
      * Convert a ResultSet into a PendingHashLookupobject.
      *
      * @param resultSet ResultSet row returned from db query
-     * @return  PendingHashLookup object
+     * @return PendingHashLookup object
      * @throws SQLException
      */
     private PendingHashLookup getPendingHashLookupFromResultSet(ResultSet resultSet) throws SQLException {
@@ -787,36 +778,32 @@ public class SwarmItDb {
     }
 
     /**
-     * Acquire the lock that provides exclusive access to the database.
-     * Call this method in a try block with a call to the release method
-     * in an associated finally block.
+     * Acquire the lock that provides exclusive access to the database. Call this method in a try block with a call to
+     * the release method in an associated finally block.
      */
     private void acquireExclusiveLock() {
         rwLock.writeLock().lock();
     }
 
     /**
-     * Release the lock that provides exclusive access to the database.
-     * This method should be called in the finally block of a try block
-     * in which the lock was acquired.
+     * Release the lock that provides exclusive access to the database. This method should be called in the finally
+     * block of a try block in which the lock was acquired.
      */
     private void releaseExclusiveLock() {
         rwLock.writeLock().unlock();
     }
 
     /**
-     * Acquire the lock that provides shared access to the database.
-     * Call this method in a try block with a call to the release method
-     * in an associated finally block.
+     * Acquire the lock that provides shared access to the database. Call this method in a try block with a call to the
+     * release method in an associated finally block.
      */
     private void acquireSharedLock() {
         rwLock.readLock().lock();
     }
 
     /**
-     * Release the lock that provides shared access to the database.
-     * This method should be called in the finally block of a try block
-     * in which the lock was acquired.
+     * Release the lock that provides shared access to the database. This method should be called in the finally block
+     * of a try block in which the lock was acquired.
      */
     private void releaseSharedLock() {
         rwLock.readLock().unlock();

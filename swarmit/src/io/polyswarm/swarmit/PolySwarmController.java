@@ -26,9 +26,9 @@ package io.polyswarm.swarmit;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
-import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
+import io.polyswarm.swarmit.optionspanel.PolySwarmMarketplaceSettings;
 import io.polyswarm.swarmit.tasks.ProcessPendingTask;
 import java.util.List;
 import java.util.Objects;
@@ -48,7 +48,7 @@ import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskDataException;
 
 /**
- * Thread that runs in the background to process AbstractFiles that have been submitted using SwarmIt right-click menu
+ * Thread that runs in the background to process AbstractFiles that have been submitted using PolySwarm right-click menu
  * option.
  *
  * AbstractFile ID and PolySwarm UUID are kept in sqlite db.
@@ -58,13 +58,13 @@ import org.sleuthkit.datamodel.TskDataException;
  * artifacts will be displayed in the left pane in a sub-tree called "PolySwarm Results."
  *
  */
-public class SwarmItController {
+public class PolySwarmController {
 
-    private static final Logger LOGGER = Logger.getLogger(SwarmItController.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PolySwarmController.class.getName());
 
     private final Case autopsyCase;
-    private final SwarmItMarketplaceSettings apiSettings;
-    private final SwarmItDb dbInstance;
+    private final PolySwarmMarketplaceSettings apiSettings;
+    private final PolySwarmDb dbInstance;
     public ProgressHandle progressHandle;
     private ListeningScheduledExecutorService dbExecutor;
     public static final String POLYSWARM_ARTIFACT_TYPE_NAME = "POLYSWARM_RESULTS";
@@ -93,10 +93,10 @@ public class SwarmItController {
         return autopsyCase;
     }
 
-    SwarmItController(Case newCase) throws TskCoreException, SwarmItDbException {
+    PolySwarmController(Case newCase) throws TskCoreException, PolySwarmDbException {
         this.autopsyCase = Objects.requireNonNull(newCase);
-        this.apiSettings = new SwarmItMarketplaceSettings();
-        this.dbInstance = SwarmItDb.getInstance();
+        this.apiSettings = new PolySwarmMarketplaceSettings();
+        this.dbInstance = PolySwarmDb.getInstance();
 
         dbExecutor = getNewDBExecutor();
         createCustomArtifactType(this.autopsyCase, POLYSWARM_ARTIFACT_TYPE_NAME, POLYSWARM_ARTIFACT_TYPE_DISPLAY_NAME);
@@ -168,7 +168,7 @@ public class SwarmItController {
             dbInstance.shutdownConnections();
             shutDownDBExecutor();
             dbExecutor = getNewDBExecutor();
-        } catch (SwarmItDbException ex) {
+        } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Failed to shutdown database connections.", ex); // NON-NLS
         }
     }
@@ -179,14 +179,14 @@ public class SwarmItController {
             try {
                 dbExecutor.awaitTermination(30, TimeUnit.SECONDS);
             } catch (InterruptedException ex) {
-                LOGGER.log(Level.WARNING, "SwarmIt failed to shutdown DB Task Executor in a timely fashion.", ex);
+                LOGGER.log(Level.WARNING, "PolySwarm failed to shutdown DB Task Executor in a timely fashion.", ex);
             }
         }
     }
 
     private static ListeningScheduledExecutorService getNewDBExecutor() {
         return MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(
-                new ThreadFactoryBuilder().setNameFormat("SwarmIt-DB-Worker-Thread-%d").build()));
+                new ThreadFactoryBuilder().setNameFormat("PolySwarm-DB-Worker-Thread-%d").build()));
     }
 
 }

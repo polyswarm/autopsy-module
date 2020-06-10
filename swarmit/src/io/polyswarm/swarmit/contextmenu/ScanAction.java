@@ -23,8 +23,8 @@
  */
 package io.polyswarm.swarmit.contextmenu;
 
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,20 +37,20 @@ import org.sleuthkit.datamodel.AbstractFile;
  * Action added to right-click menu on an abstractFile.
  */
 public class ScanAction extends AbstractAction {
-    
+
     private static final long serivalVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ScanAction.class.getName());
     private final AbstractFile abstractFile;
-    
+
     ScanAction(String menuItemStr, AbstractFile abstractFile) {
         super(menuItemStr);
         this.abstractFile = abstractFile;
     }
-    
+
     @Override
     @org.openide.util.NbBundle.Messages({"ScanAction.dbError.message=Failed to record submission in pending submissions database.",
         "ScanAction.submitError.message=Failed to submit file to PolySwarm.",
-        "ScanAction.messageDialog.title=SwarmIt",
+        "ScanAction.messageDialog.title=PolySwarm Scan",
         "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
@@ -58,27 +58,27 @@ public class ScanAction extends AbstractAction {
             Long abstractFileId = abstractFile.getId();
 
             try {
-                SwarmItDb instance = SwarmItDb.getInstance();
+                PolySwarmDb instance = PolySwarmDb.getInstance();
                 // TODO: here we check to see if a file was already submitted before re-submitting
                 // we should allow the user to click YES/NO to force a re-submit.
                 if (!instance.isPendingSubmission(abstractFileId)) {
                     // add file info to pending submissions db
                     instance.newPendingSubmission(abstractFileId);
                     LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}.",
-                        abstractFileId.toString()));
+                            abstractFileId.toString()));
                 } else {
                     LOGGER.log(Level.INFO, "File is already pending, not re-submitting.");
                     JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                        Bundle.ScanAction_alreadyPending_message(),
-                        Bundle.ScanAction_messageDialog_title(), 
-                        JOptionPane.ERROR_MESSAGE);
+                            Bundle.ScanAction_alreadyPending_message(),
+                            Bundle.ScanAction_messageDialog_title(),
+                            JOptionPane.ERROR_MESSAGE);
                 }
 
-            } catch (SwarmItDbException ex) {
+            } catch (PolySwarmDbException ex) {
                 LOGGER.log(Level.SEVERE, "Error adding new submission data to sqlite db.", ex);
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
                         Bundle.ScanAction_dbError_message(),
-                        Bundle.ScanAction_messageDialog_title(), 
+                        Bundle.ScanAction_messageDialog_title(),
                         JOptionPane.ERROR_MESSAGE);
             }
         }

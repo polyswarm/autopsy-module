@@ -27,7 +27,7 @@ import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.InputStreamKnownSizeBody;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
-import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
+import io.polyswarm.swarmit.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
@@ -58,7 +58,7 @@ public class SubmitArtifactRequest implements Request<ArtifactInstance> {
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
+            PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
             String apikey = apiSettings.getApiKey();
 
             // FIXME allow user to select community

@@ -32,7 +32,7 @@ import io.polyswarm.swarmit.apiclient.v2.requests.TagRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.TestRequest;
 import io.polyswarm.swarmit.apiclient.v2.requests.TestResponse;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
+import io.polyswarm.swarmit.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -165,7 +165,7 @@ public class ApiClientV2 {
      * @param apiSettings - Instance of the API settings
      * @return true if connection successful, else false
      */
-    public static TestResponse testConnection(SwarmItMarketplaceSettings apiSettings) {
+    public static TestResponse testConnection(PolySwarmMarketplaceSettings apiSettings) {
 
         try {
             return new TestRequest().makeRequest();

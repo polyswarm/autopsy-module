@@ -25,7 +25,7 @@ package io.polyswarm.swarmit.apiclient.v2.requests;
 
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.NotAuthorizedException;
-import io.polyswarm.swarmit.optionspanel.SwarmItMarketplaceSettings;
+import io.polyswarm.swarmit.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.logging.Logger;
@@ -47,7 +47,7 @@ public class TestRequest implements Request<TestResponse> {
     @Override
     public TestResponse makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            SwarmItMarketplaceSettings apiSettings = new SwarmItMarketplaceSettings();
+            PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
 
             URIBuilder builder = new URIBuilder(apiSettings.getStatusUrl());
             HttpGet httpget = new HttpGet(builder.build());

@@ -23,15 +23,15 @@
  */
 package io.polyswarm.swarmit.tasks;
 
-import io.polyswarm.swarmit.SwarmItController;
-import io.polyswarm.swarmit.SwarmItModule;
+import io.polyswarm.swarmit.PolySwarmController;
+import io.polyswarm.swarmit.PolySwarmModule;
 import io.polyswarm.swarmit.apiclient.BadRequestException;
 import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Assertion;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
@@ -53,10 +53,10 @@ public abstract class PendingTask {
 
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
 
-    public abstract boolean process(Case autopsyCase) throws SwarmItDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
+    public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
 
-    public SwarmItDb getDbInstance() throws SwarmItDbException {
-        return SwarmItDb.getInstance();
+    public PolySwarmDb getDbInstance() throws PolySwarmDbException {
+        return PolySwarmDb.getInstance();
     }
 
     /**
@@ -67,8 +67,8 @@ public abstract class PendingTask {
      */
     public static void updateNotFound(Case autopsyCase, Long abstractFileId) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
-        BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, SwarmItModule.getModuleName(), "Not Found in PolySwarm"));
+        BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, PolySwarmModule.getModuleName(), "Not Found in PolySwarm"));
     }
 
     /**
@@ -89,14 +89,14 @@ public abstract class PendingTask {
         }
 
         // Add all results attributes
-        BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, SwarmItModule.getModuleName(), artifactInstance.sha256));
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, artifactInstance.polyscore);
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
-        addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, artifactInstance.lastScanned);
+        BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, artifactInstance.polyscore);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, artifactInstance.lastScanned);
         // notify UI to update and display this result
 
         for (Assertion assertion : artifactInstance.assertions) {
@@ -107,16 +107,16 @@ public abstract class PendingTask {
 
         for (Assertion assertion : artifactInstance.assertions) {
             if (!assertion.malwareFamily.isEmpty()) {
-                addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, assertion.malwareFamily);
+                addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_NAME, assertion.malwareFamily);
             }
         }
 
         for (Tag tag : tags) {
-            addArtifactAttribute(autopsyCase, artifact, SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, tag.name);
+            addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, tag.name);
         }
 
-        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(SwarmItModule.getModuleName(),
-                autopsyCase.getSleuthkitCase().getArtifactType(SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME)));
+        IngestServices.getInstance().fireModuleDataEvent(new ModuleDataEvent(PolySwarmModule.getModuleName(),
+                autopsyCase.getSleuthkitCase().getArtifactType(PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME)));
     }
 
     /**
@@ -128,8 +128,8 @@ public abstract class PendingTask {
      * @param assertion Assertion from PolySwarm
      */
     public static void addAssertion(Case autopsyCase, BlackboardArtifact artifact, Assertion assertion) throws TskCoreException {
-        String attributeName = String.format(SwarmItController.POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT, assertion.name.toUpperCase());
-        SwarmItController.createCustomArtifactAttribute(autopsyCase, attributeName, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, assertion.name);
+        String attributeName = String.format(PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_ASSERTION_NAME_FORMAT, assertion.name.toUpperCase());
+        PolySwarmController.createCustomArtifactAttribute(autopsyCase, attributeName, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, assertion.name);
         addArtifactAttribute(autopsyCase, artifact, attributeName, assertion.getHumanReadableVerdict());
     }
 
@@ -162,7 +162,7 @@ public abstract class PendingTask {
             return;
         }
 
-        artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
+        artifact.addAttribute(new BlackboardAttribute(attributeType, PolySwarmModule.getModuleName(), data));
     }
 
     /**
@@ -179,7 +179,7 @@ public abstract class PendingTask {
             return;
         }
 
-        artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
+        artifact.addAttribute(new BlackboardAttribute(attributeType, PolySwarmModule.getModuleName(), data));
     }
 
     /**
@@ -196,6 +196,6 @@ public abstract class PendingTask {
             return;
         }
 
-        artifact.addAttribute(new BlackboardAttribute(attributeType, SwarmItModule.getModuleName(), data));
+        artifact.addAttribute(new BlackboardAttribute(attributeType, PolySwarmModule.getModuleName(), data));
     }
 }

@@ -31,7 +31,7 @@ import io.polyswarm.swarmit.apiclient.RateLimitException;
 import io.polyswarm.swarmit.apiclient.ServerException;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.ArtifactInstance;
 import io.polyswarm.swarmit.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class PendingSubmission extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void submitFile(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, ServerException, IOException, TskCoreException {
+    public void submitFile(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, ServerException, IOException, TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.submitFile(abstractFile);
         getDbInstance().updatePendingSubmissionId(abstractFileID, artifactInstance.id);
@@ -87,7 +87,7 @@ public class PendingSubmission extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public boolean checkSubmission(Case autopsyCase) throws SwarmItDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+    public boolean checkSubmission(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Submission {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(submissionId);
         LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
@@ -115,7 +115,7 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws SwarmItDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
         if (submissionId.isEmpty()) {
             try {
                 submitFile(autopsyCase);
@@ -149,7 +149,7 @@ public class PendingSubmission extends PendingTask {
         }
     }
 
-    private void removeFromDB() throws SwarmItDbException {
+    private void removeFromDB() throws PolySwarmDbException {
         getDbInstance().deletePendingSubmission(this);
     }
 

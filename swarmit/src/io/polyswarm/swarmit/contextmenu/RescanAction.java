@@ -23,11 +23,11 @@
  */
 package io.polyswarm.swarmit.contextmenu;
 
-import io.polyswarm.swarmit.SwarmItController;
-import static io.polyswarm.swarmit.SwarmItController.POLYSWARM_ARTIFACT_TYPE_NAME;
-import io.polyswarm.swarmit.SwarmItModule;
-import io.polyswarm.swarmit.datamodel.SwarmItDb;
-import io.polyswarm.swarmit.datamodel.SwarmItDbException;
+import io.polyswarm.swarmit.PolySwarmController;
+import static io.polyswarm.swarmit.PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME;
+import io.polyswarm.swarmit.PolySwarmModule;
+import io.polyswarm.swarmit.datamodel.PolySwarmDb;
+import io.polyswarm.swarmit.datamodel.PolySwarmDbException;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.logging.Level;
@@ -74,10 +74,10 @@ public class RescanAction extends AbstractAction {
     private void addPendingRescan(AbstractFile abstractFile) {
         try {
             
-            SwarmItController controller = SwarmItModule.getController();
+            PolySwarmController controller = PolySwarmModule.getController();
             String sha256Hash = controller.getSha256(abstractFile);
             Long abstractFileId = abstractFile.getId();
-            SwarmItDb instance = SwarmItDb.getInstance();
+            PolySwarmDb instance = PolySwarmDb.getInstance();
             if (!instance.isPendingRescan(abstractFileId)) {
                 // add hash to pending search
                 instance.newPendingRescan(abstractFileId, sha256Hash);
@@ -99,7 +99,7 @@ public class RescanAction extends AbstractAction {
                     Bundle.RescanAction_missingArtifact_message(),
                     Bundle.RescanAction_messageDialog_title(),
                     JOptionPane.ERROR_MESSAGE);
-        } catch (SwarmItDbException ex) {
+        } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Error adding new rescan to sqlite db.", ex);
             JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
                     Bundle.RescanAction_dbError_message(),
