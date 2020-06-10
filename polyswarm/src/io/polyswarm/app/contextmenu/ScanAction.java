@@ -40,6 +40,7 @@ public class ScanAction extends AbstractAction {
 
     private static final long serivalVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ScanAction.class.getName());
+    private static final int MAX_SIZE = 33554432;
     private final AbstractFile abstractFile;
 
     ScanAction(String menuItemStr, AbstractFile abstractFile) {
@@ -52,12 +53,21 @@ public class ScanAction extends AbstractAction {
         "ScanAction.submitError.message=Failed to submit file to PolySwarm.",
         "ScanAction.messageDialog.title=PolySwarm Scan",
         "ScanAction.sendFiles.message=Scanning files requires sending the file to PolySwarm.\nDo you want to continue?",
+        "ScanAction.tooLarge.message=File to large to submit to PolySwarm",
         "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
         if (abstractFile != null) {
             Long abstractFileId = abstractFile.getId();
             if (!askScanPermission()) {
+                return;
+            }
+
+            if (!isUnderSizeLimit()) {
+                JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
+                        Bundle.ScanAction_tooLarge_message(),
+                        Bundle.ScanAction_messageDialog_title(),
+                        JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -86,6 +96,10 @@ public class ScanAction extends AbstractAction {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    public boolean isUnderSizeLimit() {
+        return abstractFile.getSize() < MAX_SIZE;
     }
 
     public boolean askScanPermission() {
