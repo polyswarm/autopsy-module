@@ -53,7 +53,7 @@ public class ScanAction extends AbstractAction {
         "ScanAction.submitError.message=Failed to submit file to PolySwarm.",
         "ScanAction.messageDialog.title=PolySwarm Scan",
         "ScanAction.sendFiles.message=Scanning files requires sending the file to PolySwarm.\nDo you want to continue?",
-        "ScanAction.tooLarge.message=File to large to submit to PolySwarm",
+        "ScanAction.tooLarge.message=File too large to submit to PolySwarm",
         "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
 
