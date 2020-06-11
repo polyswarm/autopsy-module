@@ -114,7 +114,7 @@ public class PolySwarmModule {
                             try {
                                 controller = new PolySwarmController(newCase);
                             } catch (TskCoreException ex) {
-                                LOGGER.log(Level.SEVERE, "Error changing case in ImageGallery.", ex);
+                                LOGGER.log(Level.SEVERE, "Error changing case.", ex);
                             } catch (PolySwarmDbException ex) {
                                 LOGGER.log(Level.SEVERE, "Error getting PolySwarmController's database.", ex); // NON-NLS
                             }
