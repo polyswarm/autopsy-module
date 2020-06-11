@@ -134,8 +134,9 @@ public abstract class PendingTask {
     }
 
     /**
-     * Creates a new BlackboardArtifact and adds the the AbstractFile We create a new one each task so the results are
-     * easy to read & easy to associate
+     * Creates a new BlackboardArtifact for tracking scan/lookup results.
+     *
+     * A new artifact is added per scan/lookup
      *
      * @param autopsyCase Open case
      * @param abstractFile File in in being updated
