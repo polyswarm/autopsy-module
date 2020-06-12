@@ -25,7 +25,7 @@ At this point you just need an API key to get started.
 
 ## Get Your API Key
 
-The PolySwarm Autopsy Module requires an API Key to get valid responses from PolySwarm.
+The PolySwarm Autopsy Module requires an API Key to send requests to PolySwarm.
 You can get an API key from PolySwarm at [https://polyswarm.network](https://polyswarm.network)
 
 1. Sign up for an account with PolySwarm on polyswarm.network
@@ -57,7 +57,6 @@ Subsequent scans will be reported under the same `PolySwarm Results`, but as a s
 
 Alternatively, you can view the results in the results tab at the bottom of the `Listing` view.
 
-
 ### Hash Lookup
 
 Hash Lookup requires an open Case with some files, that have been hashed.
@@ -69,11 +68,28 @@ It should complete in a couple of seconds.
 The results from a Hash lookup are shown in the same `PolySwarm Results` described above.
 If the file has not been seen before by PolySwarm, it will be labeled `Not Found`.
 
+### Rescan File
+
+To scan a file it is uploaded to PolySwarm.
+There are many situations where uploading is not feasible. 
+In response, we added the rescan option, for files that have been scanned, or have a successful hash lookup from PolySwarm. 
+It sends the sha256 and triggers a new scan, all without uploading the file. 
+
+To use rescan, right click the intended file, and click `Recan on PolySwarm`.
+This will send the sha256 hash to PolySwarm, where the file will be scanned again, without any upload. 
+Scans take a minimum of 25 seconds, but the delay can increase if PolySwarm is under load.
+
+After the scan completes, a new `Extracted Content` field named `PolySwarm Results` will appear.
+You can view details of ther scan there.
+Subsequent scans will be reported under the same `PolySwarm Results`, but as a separate result.
+
+Alternatively, you can view the results in the results tab at the bottom of the `Listing` view.
+
 ## Features
 
-### Right-click options to Scan or Hash Lookup on PolySwarm
+### Right-click options to Scan, Rescan, or Lookup Hash on PolySwarm
 
-When an Autopsy case is open and has ingested files, two new options show up on right clicks: `Scan On PolySwarm` and `Hash Lookup on PolySwarm`.
+When an Autopsy case is open and has ingested files, three new options show up on right clicks: `Scan On PolySwarm` `Rescan on PolySwarm`, and `Hash Lookup on PolySwarm`.
 
 ### Custom artifact type
 
@@ -101,3 +117,11 @@ Presents tags that PolySwarm has identified to kickstart analysis.
 ### Known bad
 
 Marks malicious files as `Known Bad` based on PolyScore and Assertion results.
+
+### First Seen
+
+Includes the date this file was first seen by PolySwarm
+
+### Latest Scan
+
+Includes the last date this file was scanned.
