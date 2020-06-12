@@ -25,7 +25,7 @@ At this point you just need an API key to get started.
 
 ## Get Your API Key
 
-The PolySwarm Autopsy Module requires an API Key to send requiests to PolySwarm.
+The PolySwarm Autopsy Module requires an API Key to send requests to PolySwarm.
 You can get an API key from PolySwarm at [https://polyswarm.network](https://polyswarm.network)
 
 1. Sign up for an account with PolySwarm on polyswarm.network
@@ -124,4 +124,4 @@ Includes the date this file was first seen by PolySwarm
 
 ### Latest Scan
 
-Includes the last daye this file was scanned.
+Includes the last date this file was scanned.
