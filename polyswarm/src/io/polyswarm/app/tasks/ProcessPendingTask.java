@@ -29,6 +29,7 @@ import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +47,14 @@ public class ProcessPendingTask extends BackgroundTask {
     private static final Logger LOGGER = Logger.getLogger(ProcessPendingTask.class.getName());
     private final PolySwarmDb dbInstance;
     private final Case autopsyCase;
-    private ProgressHandle progressHandle;
+    private HashMap<PendingTask, ProgressHandle> progressHandles;
+
+    public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
+        super();
+        this.dbInstance = dbInstance;
+        this.autopsyCase = autopsyCase;
+        progressHandles = new HashMap<>();
+    }
 
     public PolySwarmDb getDbInstance() {
         return dbInstance;
@@ -54,12 +62,6 @@ public class ProcessPendingTask extends BackgroundTask {
 
     public Case getAutopsyCase() {
         return autopsyCase;
-    }
-
-    public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
-        super();
-        this.dbInstance = dbInstance;
-        this.autopsyCase = autopsyCase;
     }
 
     @Override
@@ -72,24 +74,21 @@ public class ProcessPendingTask extends BackgroundTask {
             pendingList.addAll(db.getPendingHashLookups());
             pendingList.addAll(db.getPendingSubmissions());
             pendingList.addAll(db.getPendingRescans());
-
-            if (pendingList.isEmpty()) {
-                if (progressHandle != null) {
-                    progressHandle.finish();
-                    progressHandle = null;
-                }
-                LOGGER.log(Level.INFO, "No pending submissions found.");
-                return;
-            } else if (progressHandle == null) {
-                progressHandle = getInitialProgressHandle();
-                progressHandle.start();
-                progressHandle.switchToIndeterminate();
-            }
             LOGGER.log(Level.INFO, "Found {0} pending tasks. Starting processing...", pendingList.size());
 
-            for (PendingTask pendingTask : pendingList) {
+            pendingList.forEach((pendingTask) -> {
                 try {
-                    pendingTask.process(getAutopsyCase());
+                    if (!progressHandles.containsKey(pendingTask)) {
+                        LOGGER.log(Level.INFO, "Creating a new progressbar for {0}", pendingTask);
+                        ProgressHandle handle = pendingTask.getPendingTaskProgressHandle();
+                        handle.start();
+                        handle.switchToIndeterminate();
+                        progressHandles.put(pendingTask, handle);
+                    }
+                    if (pendingTask.process(getAutopsyCase())) {
+                        LOGGER.log(Level.INFO, "{0} finished", pendingTask);
+                        progressHandles.get(pendingTask).finish();
+                    }
                 } catch (RateLimitException ex) {
                     LOGGER.log(Level.SEVERE, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
                 } catch (BadRequestException ex) {
@@ -103,17 +102,12 @@ public class ProcessPendingTask extends BackgroundTask {
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Unexpected exception while processing task", ex);
                 }
-            }
+            });
             LOGGER.log(Level.INFO, "Completed a pass on pending tasks.");
 
         } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Failed to get list of pending tasks from db.", ex);
         }
-    }
-
-    @NbBundle.Messages({"ProcessPendingTask.populatingDb.status=Processing Requests to PolySwarm.",})
-    private ProgressHandle getInitialProgressHandle() {
-        return ProgressHandle.createHandle(io.polyswarm.app.tasks.Bundle.ProcessPendingTask_populatingDb_status(), this);
     }
 
 }

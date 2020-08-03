@@ -35,6 +35,7 @@ import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -49,7 +50,7 @@ public class PendingHashLookup extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingHashLookup.class.getName());
 
     private final String md5Hash;
-    private final long abstractFileId;
+    private final Long abstractFileId;
 
     public PendingHashLookup(long abstractFileId, String md5Hash) {
         this.abstractFileId = abstractFileId;
@@ -66,8 +67,13 @@ public class PendingHashLookup extends PendingTask {
         return md5Hash;
     }
 
-    public long getAbstractFileId() {
+    public Long getAbstractFileId() {
         return abstractFileId;
+    }
+
+    @Override
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+        return lookupHash(autopsyCase);
     }
 
     /**
@@ -76,7 +82,7 @@ public class PendingHashLookup extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void lookupHash(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public boolean lookupHash(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Looking up Hash {0}", md5Hash);
         try {
             ArtifactInstance artifactInstance = ApiClientV2.searchHash(md5Hash);
@@ -84,7 +90,7 @@ public class PendingHashLookup extends PendingTask {
             LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
             if (!artifactInstance.windowClosed) {
                 // Exit if not done
-                return;
+                return false;
             }
             List<Tag> tags;
             try {
@@ -102,18 +108,51 @@ public class PendingHashLookup extends PendingTask {
         } catch (ServerException ex) {
             LOGGER.log(Level.SEVERE, "Server Error.", ex);
         } finally {
-            getDbInstance().deletePendingHashLookup(this);
+            removeFromDB();
         }
-    }
-
-    @Override
-    public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
-        lookupHash(autopsyCase);
         return true;
     }
 
     @Override
+    public boolean remove() {
+        try {
+            removeFromDB();
+            return true;
+        } catch (PolySwarmDbException e) {
+            LOGGER.log(Level.SEVERE, "Error cancelling Pending Rescan");
+            return false;
+        }
+    }
+
+    private void removeFromDB() throws PolySwarmDbException {
+        getDbInstance().deletePendingHashLookup(this);
+    }
+
+    @Override
+    public String getHumanReadableName() {
+        return "Hash Lookup";
+    }
+
+    @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", abstractFileId, md5Hash);
+        return String.format("PendingSubmission(abstractFileID: %s, submission_uuid: %s)", abstractFileId, md5Hash);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof PendingHashLookup) {
+            PendingHashLookup otherHashLookup = (PendingHashLookup) other;
+            return otherHashLookup.md5Hash.equals(md5Hash) && otherHashLookup.abstractFileId.equals(abstractFileId);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.md5Hash);
+        hash = 59 * hash + Objects.hashCode(this.abstractFileId);
+        return hash;
     }
 }

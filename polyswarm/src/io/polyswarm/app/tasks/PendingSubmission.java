@@ -35,6 +35,7 @@ import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -67,6 +68,44 @@ public class PendingSubmission extends PendingTask {
      */
     public Long getAbstractFileId() {
         return abstractFileID;
+    }
+
+    @Override
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
+        if (submissionId.isEmpty()) {
+            try {
+                submitFile(autopsyCase);
+                return false;
+            } catch (NotAuthorizedException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
+                removeFromDB();
+            } catch (NotFoundException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
+                removeFromDB();
+            } catch (ServerException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
+                removeFromDB();
+            }
+            // Return true on these exceptions
+            return true;
+
+            // Check results of files with submission ID
+        } else {
+            try {
+                return checkSubmission(autopsyCase);
+            } catch (NotAuthorizedException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
+                removeFromDB();
+            } catch (NotFoundException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
+                removeFromDB();
+            } catch (ServerException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
+                removeFromDB();
+            }
+            // Return true on these exceptions
+            return true;
+        }
     }
 
     /**
@@ -115,37 +154,13 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
-        if (submissionId.isEmpty()) {
-            try {
-                submitFile(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
+    public boolean remove() {
+        try {
+            removeFromDB();
             return true;
-            // Check results of files with submission ID
-        } else {
-            try {
-                return checkSubmission(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
-            // Return true on these exceptions
-            return true;
+        } catch (PolySwarmDbException e) {
+            LOGGER.log(Level.SEVERE, "Error cancelling Pending Submission");
+            return false;
         }
     }
 
@@ -154,7 +169,27 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
+    public String getHumanReadableName() {
+        return "Scan";
+    }
+
+    @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", getAbstractFileId().toString(), getSubmissionId());
+        return String.format("PendingSubmission(abstractFileID: %s, submission_uuid: %s)", getAbstractFileId().toString(), getSubmissionId());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof PendingSubmission) {
+            PendingSubmission otherSubmission = (PendingSubmission) other;
+            return Objects.equals(otherSubmission.abstractFileID, abstractFileID);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.abstractFileID);
     }
 }

@@ -35,6 +35,9 @@ import io.polyswarm.app.datamodel.PolySwarmDb;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import org.netbeans.api.progress.ProgressHandle;
+import org.openide.util.Cancellable;
+import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.ingest.IngestServices;
 import org.sleuthkit.autopsy.ingest.ModuleDataEvent;
@@ -45,15 +48,26 @@ import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskData;
 
 /**
- * PendingTask abstract class with helper functions for updating backingboard.
+ * PendingTask abstract class with helper functions for updating blackboard.
  *
  * All children classes must implement `process(Case autopsyCase)`
  */
-public abstract class PendingTask {
+public abstract class PendingTask implements Cancellable {
 
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
 
     public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
+
+    public abstract boolean remove();
+
+    @Override
+    public synchronized boolean cancel() {
+        return remove();
+    }
+
+    public String getHumanReadableName() {
+        return "Task";
+    }
 
     public PolySwarmDb getDbInstance() throws PolySwarmDbException {
         return PolySwarmDb.getInstance();
@@ -198,5 +212,10 @@ public abstract class PendingTask {
         }
 
         artifact.addAttribute(new BlackboardAttribute(attributeType, PolySwarmModule.getModuleName(), data));
+    }
+
+    @NbBundle.Messages({"PendingTask.populatingDb.status=Processing %s."})
+    public ProgressHandle getPendingTaskProgressHandle() {
+        return ProgressHandle.createHandle(String.format(io.polyswarm.app.tasks.Bundle.PendingTask_populatingDb_status(), getHumanReadableName()), this);
     }
 }
