@@ -50,6 +50,7 @@ public final class PolySwarmOptionsPanelController extends OptionsPanelControlle
     @Override
     public void update() {
         getPanel().load();
+        getPanel().restore();
         changed = false;
     }
 
