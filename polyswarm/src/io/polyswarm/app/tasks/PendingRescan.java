@@ -88,15 +88,15 @@ public class PendingRescan extends PendingTask {
                 return false;
             } catch (NotAuthorizedException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
             } catch (NotFoundException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
             } catch (ServerException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOException.", ex);
             }
             // Return true these exceptions
+            removeFromDB();
             return true;
             // Check results of files with submission ID
         } else {
@@ -104,15 +104,15 @@ public class PendingRescan extends PendingTask {
                 return checkSubmission(autopsyCase);
             } catch (NotAuthorizedException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
             } catch (NotFoundException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
             } catch (ServerException ex) {
                 LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOException.", ex);
             }
             // Return true these exceptions
+            removeFromDB();
             return true;
         }
     }

@@ -108,6 +108,8 @@ public class PendingHashLookup extends PendingTask {
             updateNotFound(autopsyCase, abstractFileId);
         } catch (ServerException ex) {
             LOGGER.log(Level.SEVERE, "Server Error.", ex);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, "IOException.", ex);
         } finally {
             removeFromDB();
         }
