@@ -76,10 +76,6 @@ public final class PolySwarmMarketplaceSettings {
         ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, getCommunity());
     }
 
-    public boolean testSettings() {
-        return ApiClientV2.testConnection(this).passed;
-    }
-
     public boolean isChanged() {
         String urlString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL);
         String jsonString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
