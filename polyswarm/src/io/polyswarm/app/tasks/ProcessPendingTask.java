@@ -47,7 +47,7 @@ public class ProcessPendingTask extends BackgroundTask {
     private static final Logger LOGGER = Logger.getLogger(ProcessPendingTask.class.getName());
     private final PolySwarmDb dbInstance;
     private final Case autopsyCase;
-    private HashMap<PendingTask, ProgressHandle> progressHandles;
+    private final HashMap<PendingTask, ProgressHandle> progressHandles;
 
     public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
         super();

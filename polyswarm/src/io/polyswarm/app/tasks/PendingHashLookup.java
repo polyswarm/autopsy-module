@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
-import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.TskCoreException;
 
 /**
@@ -51,16 +50,12 @@ public class PendingHashLookup extends PendingTask {
 
     private final String md5Hash;
     private final Long abstractFileId;
+    private final Boolean cancelled;
 
-    public PendingHashLookup(long abstractFileId, String md5Hash) {
+    public PendingHashLookup(long abstractFileId, String md5Hash, Boolean cancelled) {
         this.abstractFileId = abstractFileId;
         this.md5Hash = md5Hash;
-    }
-
-    public PendingHashLookup(AbstractFile abstractFile) {
-        abstractFileId = abstractFile.getId();
-        md5Hash = abstractFile.getMd5Hash();
-
+        this.cancelled = cancelled;
     }
 
     public String getMd5Hash() {
@@ -73,6 +68,11 @@ public class PendingHashLookup extends PendingTask {
 
     @Override
     public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        }
+
         return lookupHash(autopsyCase);
     }
 
@@ -92,6 +92,7 @@ public class PendingHashLookup extends PendingTask {
                 // Exit if not done
                 return false;
             }
+
             List<Tag> tags;
             try {
                 tags = ApiClientV2.getTags(artifactInstance);
@@ -114,9 +115,9 @@ public class PendingHashLookup extends PendingTask {
     }
 
     @Override
-    public boolean remove() {
+    public boolean cancel() {
         try {
-            removeFromDB();
+            getDbInstance().cancelPendingHashLookup(this);
             return true;
         } catch (PolySwarmDbException e) {
             LOGGER.log(Level.SEVERE, "Error cancelling Pending Rescan");

@@ -58,12 +58,8 @@ public abstract class PendingTask implements Cancellable {
 
     public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
 
-    public abstract boolean remove();
-
     @Override
-    public synchronized boolean cancel() {
-        return remove();
-    }
+    public abstract boolean cancel();
 
     public String getHumanReadableName() {
         return "Task";

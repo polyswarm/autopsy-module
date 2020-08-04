@@ -50,10 +50,12 @@ public class PendingSubmission extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingSubmission.class.getName());
     private final String submissionId;
     private final Long abstractFileID;
+    private final boolean cancelled;
 
-    public PendingSubmission(Long abstractFileID, String uuid) {
+    public PendingSubmission(Long abstractFileID, String uuid, boolean cancelled) {
         this.abstractFileID = abstractFileID;
         this.submissionId = uuid;
+        this.cancelled = cancelled;
     }
 
     /**
@@ -72,7 +74,10 @@ public class PendingSubmission extends PendingTask {
 
     @Override
     public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
-        if (submissionId.isEmpty()) {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        } else if (submissionId.isEmpty()) {
             try {
                 submitFile(autopsyCase);
                 return false;
@@ -154,9 +159,9 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
-    public boolean remove() {
+    public boolean cancel() {
         try {
-            removeFromDB();
+            getDbInstance().cancelPendingSubmission(this);
             return true;
         } catch (PolySwarmDbException e) {
             LOGGER.log(Level.SEVERE, "Error cancelling Pending Submission");

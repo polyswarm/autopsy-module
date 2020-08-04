@@ -50,11 +50,13 @@ public class PendingRescan extends PendingTask {
     private final String rescanId;
     private final String sha256Hash;
     private final Long abstractFileID;
+    private final Boolean cancelled;
 
-    public PendingRescan(Long abstractFileID, String sha256Hash, String uuid) {
+    public PendingRescan(Long abstractFileID, String sha256Hash, String uuid, Boolean cancelled) {
         this.abstractFileID = abstractFileID;
         this.sha256Hash = sha256Hash;
         this.rescanId = uuid;
+        this.cancelled = cancelled;
     }
 
     /**
@@ -77,7 +79,10 @@ public class PendingRescan extends PendingTask {
 
     @Override
     public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
-        if (rescanId.isEmpty()) {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        } else if (rescanId.isEmpty()) {
             try {
                 submitRescan();
                 return false;
@@ -157,9 +162,9 @@ public class PendingRescan extends PendingTask {
     }
 
     @Override
-    public boolean remove() {
+    public boolean cancel() {
         try {
-            removeFromDB();
+            getDbInstance().cancelPendingRescan(this);
             return true;
         } catch (PolySwarmDbException e) {
             LOGGER.log(Level.SEVERE, "Error cancelling Pending Rescan");
