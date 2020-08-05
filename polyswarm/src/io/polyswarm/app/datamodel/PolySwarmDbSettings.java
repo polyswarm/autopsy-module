@@ -226,7 +226,7 @@ public final class PolySwarmDbSettings {
 
             stmt.execute(createDbInfoTable.toString());
 
-            runMigrations(stmt);
+            runMigrations(conn);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "Failed to initialize sqlite db schema.", ex); // NON-NLS
             return false;
@@ -241,11 +241,13 @@ public final class PolySwarmDbSettings {
      * Runs a set of migrations in a specific order Runs synchronously
      *
      */
-    private void runMigrations(Statement statement) throws SQLException {
-        new CreatePendingSubmissionMigration().run(statement);
-        new CreatePendingHashLookupMigration().run(statement);
-        new CreatePendingRescanMigration().run(statement);
-        new AddCancelledColumnMigration().run(statement);
+    private void runMigrations(Connection connection) throws SQLException {
+        new CreatePendingSubmissionMigration().run(connection);
+        new CreatePendingHashLookupMigration().run(connection);
+        new CreatePendingRescanMigration().run(connection);
+        new AddCancelledColumnMigration("pending_submissions").run(connection);
+        new AddCancelledColumnMigration("pending_rescans").run(connection);
+        new AddCancelledColumnMigration("pending_hashes").run(connection);
     }
 
     /**

@@ -23,6 +23,7 @@
  */
 package io.polyswarm.app.datamodel.migrations;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -33,7 +34,7 @@ import java.sql.Statement;
 public class CreatePendingRescanMigration implements Migration {
 
     @Override
-    public void run(Statement statement) throws SQLException {
+    public void run(Connection connection) throws SQLException {
         StringBuilder createPendingRescanTable = new StringBuilder();
         createPendingRescanTable.append("CREATE TABLE IF NOT EXISTS pending_rescans(");
         createPendingRescanTable.append("id integer primary key autoincrement NOT NULL,");
@@ -43,6 +44,7 @@ public class CreatePendingRescanMigration implements Migration {
         createPendingRescanTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
         createPendingRescanTable.append(")");
 
+        Statement statement = connection.createStatement();
         statement.execute(createPendingRescanTable.toString());
     }
 

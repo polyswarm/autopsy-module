@@ -23,6 +23,7 @@
  */
 package io.polyswarm.app.datamodel.migrations;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -32,7 +33,7 @@ import java.sql.Statement;
 public class CreatePendingSubmissionMigration implements Migration {
 
     @Override
-    public void run(Statement statement) throws SQLException {
+    public void run(Connection connection) throws SQLException {
         StringBuilder createPendingSubmissionsTable = new StringBuilder();
         createPendingSubmissionsTable.append("CREATE TABLE IF NOT EXISTS pending_submissions (");
         createPendingSubmissionsTable.append("id integer primary key autoincrement NOT NULL,");
@@ -41,6 +42,7 @@ public class CreatePendingSubmissionMigration implements Migration {
         createPendingSubmissionsTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
         createPendingSubmissionsTable.append(")");
 
+        Statement statement = connection.createStatement();
         statement.execute(createPendingSubmissionsTable.toString());
     }
 

@@ -23,20 +23,51 @@
  */
 package io.polyswarm.app.datamodel.migrations;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Add cancelled column to pending_submissions, pending_hashes, and pending_rescans
  */
 public class AddCancelledColumnMigration implements Migration {
 
-    @Override
-    public void run(Statement statement) throws SQLException {
-        String alterTableFormat = "ALTER TABLE %s ADD cancelled boolean";
+    private final static Logger LOGGER = Logger.getLogger(AddCancelledColumnMigration.class.getName());
+    private static final String ALTER_TABLE_FORMAT = "ALTER TABLE %s ADD cancelled boolean";
+    private static final String PRAGMA_TABLE_INFO = "SELECT name from pragma_table_info(?)";
+    private static final String COLUMN_NAME = "cancelled";
 
-        statement.execute(String.format(alterTableFormat, "pending_submissions"));
-        statement.execute(String.format(alterTableFormat, "pending_hashes"));
-        statement.execute(String.format(alterTableFormat, "pending_rescans"));
+    private final String tableName;
+
+    public AddCancelledColumnMigration(String table) {
+        tableName = table;
+    }
+
+    @Override
+    public void run(Connection connection) throws SQLException {
+        if (!hasRun(connection)) {
+
+            Statement statement = connection.createStatement();
+            statement.execute(String.format(ALTER_TABLE_FORMAT, tableName));
+        }
+    }
+
+    private boolean hasRun(Connection connection) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(PRAGMA_TABLE_INFO);
+        preparedStatement.setString(1, tableName);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()) {
+            String schemaColumn = resultSet.getString("name");
+            LOGGER.log(Level.FINE, "Found {0}", schemaColumn);
+            if (COLUMN_NAME.equals(schemaColumn)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

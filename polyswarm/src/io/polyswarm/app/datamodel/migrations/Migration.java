@@ -23,14 +23,16 @@
  */
 package io.polyswarm.app.datamodel.migrations;
 
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  * Interface for defining a migration to the database
  *
+ * Note for implementers: Make sure your migration can only run once, as we don't have a table to track these
+ *
  */
 public interface Migration {
 
-    public void run(Statement statement) throws SQLException;
+    public void run(Connection connection) throws SQLException;
 }
