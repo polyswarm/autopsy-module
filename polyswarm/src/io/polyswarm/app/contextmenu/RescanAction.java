@@ -1,4 +1,4 @@
- /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -28,6 +28,7 @@ import static io.polyswarm.app.PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME;
 import io.polyswarm.app.PolySwarmModule;
 import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
+import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.logging.Level;
@@ -41,12 +42,12 @@ import org.sleuthkit.datamodel.BlackboardArtifact;
 import org.sleuthkit.datamodel.BlackboardAttribute;
 import org.sleuthkit.datamodel.TskCoreException;
 
-
 /**
- * Adds a hash lookup action that queries polyswarm about the artifact in question
- * Update the blackboard with results from the hash lookup
+ * Adds a hash lookup action that queries polyswarm about the artifact in question Update the blackboard with results
+ * from the hash lookup
  */
 public class RescanAction extends AbstractAction {
+
     private static final long serivalVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(RescanAction.class.getName());
     private final AbstractFile abstractFile;
@@ -63,6 +64,12 @@ public class RescanAction extends AbstractAction {
         "RescanAction.missingArtifact.message=Must have performed a valid hash lookup or scan on file before rescan.",
         "RescanAction.messageDialog.title=Rescan on PolySwarm"})
     public void actionPerformed(ActionEvent event) {
+        PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
+        if (apiSettings.getApiKey().isEmpty()) {
+            ApiKeyWarningDialog.show();
+            return;
+        }
+
         if (abstractFile != null) {
             addPendingRescan(abstractFile);
         }
@@ -73,7 +80,7 @@ public class RescanAction extends AbstractAction {
      */
     private void addPendingRescan(AbstractFile abstractFile) {
         try {
-            
+
             PolySwarmController controller = PolySwarmModule.getController();
             String sha256Hash = controller.getSha256(abstractFile);
             Long abstractFileId = abstractFile.getId();
@@ -82,17 +89,17 @@ public class RescanAction extends AbstractAction {
                 // add hash to pending search
                 instance.newPendingRescan(abstractFileId, sha256Hash);
                 LOGGER.log(Level.FINE, String.format("Added rescan to pending db: abstractFileId: %s, sha256Hash: %s.",
-                abstractFileId.toString(),
-                sha256Hash));
+                        abstractFileId.toString(),
+                        sha256Hash));
             } else {
                 LOGGER.log(Level.INFO, "Rescan is already pending, not re-submitting.");
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                    Bundle.RescanAction_alreadyPending_message(),
-                    Bundle.RescanAction_messageDialog_title(),
-                    JOptionPane.ERROR_MESSAGE);
+                        Bundle.RescanAction_alreadyPending_message(),
+                        Bundle.RescanAction_messageDialog_title(),
+                        JOptionPane.ERROR_MESSAGE);
             }
         } catch (NoCurrentCaseException | TskCoreException ex) {
-            
+
         } catch (UnsupportedOperationException ex) {
             LOGGER.log(Level.SEVERE, "Error no PolySwarm Results artifact.", ex);
             JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
@@ -107,6 +114,5 @@ public class RescanAction extends AbstractAction {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
-    
 
 }

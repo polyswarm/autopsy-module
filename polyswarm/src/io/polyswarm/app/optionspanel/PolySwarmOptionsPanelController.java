@@ -37,12 +37,13 @@ import org.openide.util.Lookup;
         position = 25,
         iconBase = "io/polyswarm/app/images/polyswarm-logo-32x32.png",
         keywords = "#OptionsCategory_Keywords_PolySwarm",
-        keywordsCategory = "PolySwarm"
+        keywordsCategory = "PolySwarm",
+        id = "io.polyswarm.app.optionspanel"
 )
 @org.openide.util.NbBundle.Messages({"OptionsCategory_Name_PolySwarm=PolySwarm", "OptionsCategory_Keywords_PolySwarm=PolySwarm Marketplace Scanning SwarmIt"})
 public final class PolySwarmOptionsPanelController extends OptionsPanelController {
 
-    private PolySwarmPanel panel;
+    private static PolySwarmPanel panel;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private boolean changed;
     private static final Logger LOGGER = Logger.getLogger(PolySwarmOptionsPanelController.class.getName());
@@ -50,8 +51,8 @@ public final class PolySwarmOptionsPanelController extends OptionsPanelControlle
     @Override
     public void update() {
         getPanel().load();
-        getPanel().restore();
         changed = false;
+        LOGGER.log(Level.SEVERE, "Received update, resetting values");
     }
 
     @Override
@@ -63,6 +64,7 @@ public final class PolySwarmOptionsPanelController extends OptionsPanelControlle
     @Override
     public void cancel() {
         // need not do anything special, if no changes have been persisted yet
+        getPanel().load();
     }
 
     @Override

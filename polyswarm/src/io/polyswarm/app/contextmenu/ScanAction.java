@@ -25,6 +25,7 @@ package io.polyswarm.app.contextmenu;
 
 import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
+import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,45 +57,54 @@ public class ScanAction extends AbstractAction {
         "ScanAction.tooLarge.message=File too large to submit to PolySwarm",
         "ScanAction.alreadyPending.message=This file was already submitted."})
     public void actionPerformed(ActionEvent event) {
+        PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
+        if (apiSettings.getApiKey().isEmpty()) {
+            ApiKeyWarningDialog.show();
+            return;
+        }
 
         if (abstractFile != null) {
-            Long abstractFileId = abstractFile.getId();
-            if (!askScanPermission()) {
-                return;
-            }
+            addScan(abstractFile);
+        }
+    }
 
-            if (!isUnderSizeLimit()) {
+    private void addScan(AbstractFile abstractFile) {
+        Long abstractFileId = abstractFile.getId();
+        if (!askScanPermission()) {
+            return;
+        }
+
+        if (!isUnderSizeLimit()) {
+            JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
+                    Bundle.ScanAction_tooLarge_message(),
+                    Bundle.ScanAction_messageDialog_title(),
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            PolySwarmDb instance = PolySwarmDb.getInstance();
+            // TODO: here we check to see if a file was already submitted before re-submitting
+            // we should allow the user to click YES/NO to force a re-submit.
+            if (!instance.isPendingSubmission(abstractFileId)) {
+                // add file info to pending submissions db
+                instance.newPendingSubmission(abstractFileId);
+                LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}.",
+                        abstractFileId.toString()));
+            } else {
+                LOGGER.log(Level.INFO, "File is already pending, not re-submitting.");
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                        Bundle.ScanAction_tooLarge_message(),
-                        Bundle.ScanAction_messageDialog_title(),
-                        JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            try {
-                PolySwarmDb instance = PolySwarmDb.getInstance();
-                // TODO: here we check to see if a file was already submitted before re-submitting
-                // we should allow the user to click YES/NO to force a re-submit.
-                if (!instance.isPendingSubmission(abstractFileId)) {
-                    // add file info to pending submissions db
-                    instance.newPendingSubmission(abstractFileId);
-                    LOGGER.log(Level.FINE, String.format("Added submission to pending submissions db: abstractFileId: {0}.",
-                            abstractFileId.toString()));
-                } else {
-                    LOGGER.log(Level.INFO, "File is already pending, not re-submitting.");
-                    JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                            Bundle.ScanAction_alreadyPending_message(),
-                            Bundle.ScanAction_messageDialog_title(),
-                            JOptionPane.ERROR_MESSAGE);
-                }
-
-            } catch (PolySwarmDbException ex) {
-                LOGGER.log(Level.SEVERE, "Error adding new submission data to sqlite db.", ex);
-                JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                        Bundle.ScanAction_dbError_message(),
+                        Bundle.ScanAction_alreadyPending_message(),
                         Bundle.ScanAction_messageDialog_title(),
                         JOptionPane.ERROR_MESSAGE);
             }
+
+        } catch (PolySwarmDbException ex) {
+            LOGGER.log(Level.SEVERE, "Error adding new submission data to sqlite db.", ex);
+            JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
+                    Bundle.ScanAction_dbError_message(),
+                    Bundle.ScanAction_messageDialog_title(),
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

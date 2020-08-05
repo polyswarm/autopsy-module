@@ -224,19 +224,17 @@ final class PolySwarmPanel extends javax.swing.JPanel {
     }
 
     void load() {
+        communityTextField.setText(settings.getCommunity());
+        apiKeyTextField.setText(settings.getApiKey());
         clearErrorMessages();
         valid();
     }
 
     void store() {
         // store modified settings
+        settings.setCommunity(communityTextField.getText());
+        settings.setApiKey(apiKeyTextField.getText());
         settings.saveSettings();
-    }
-
-    void restore() {
-        communityTextField.setText(settings.getCommunity());
-        apiKeyTextField.setText(settings.getApiKey());
-        clearErrorMessages();
     }
 
     /**
@@ -245,7 +243,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
      * @return true if valid, else false
      */
     boolean validApiKey() {
-        boolean isValid = settings.setApiKey(apiKeyTextField.getText());
+        boolean isValid = settings.validateApiKey(apiKeyTextField.getText());
         if (!isValid) {
             apiKeyErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "PolySwarmPanel.apiKeyErrorMsgLabel.text"));
         }
@@ -259,7 +257,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
      * @return true if valid, else false
      */
     boolean validCommunity() {
-        boolean isValid = settings.setCommunity(communityTextField.getText());
+        boolean isValid = settings.validateCommunity(communityTextField.getText());
         if (!isValid) {
             communityErrorMsgLabel.setText(NbBundle.getMessage(this.getClass(), "PolySwarmPanel.communityErrorMsgLabel.text"));
         }
