@@ -81,35 +81,19 @@ public class PendingSubmission extends PendingTask {
             try {
                 submitFile(autopsyCase);
                 return false;
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOError.", ex);
+                LOGGER.log(Level.SEVERE, "Error submitting file to PolySwarm.");
+                removeFromDB();
+                throw ex;
             }
-            // Return true on these exceptions
-            removeFromDB();
-            return true;
-
-            // Check results of files with submission ID
         } else {
             try {
                 return checkSubmission(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOError.", ex);
+                LOGGER.log(Level.SEVERE, "Error checking submission in PolySwarm.");
+                removeFromDB();
+                throw ex;
             }
-            removeFromDB();
-            // Return true on these exceptions
-            return true;
         }
     }
 
@@ -122,6 +106,7 @@ public class PendingSubmission extends PendingTask {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.submitFile(abstractFile);
         getDbInstance().updatePendingSubmissionId(abstractFileID, artifactInstance.id);
+        LOGGER.log(Level.INFO, "Updated Submission on {0}", abstractFileID.toString());
     }
 
     /**
@@ -134,7 +119,7 @@ public class PendingSubmission extends PendingTask {
     public boolean checkSubmission(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Submission {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(submissionId);
-        LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
+        LOGGER.log(Level.FINE, "Got response {0}", artifactInstance.toString());
         if (!artifactInstance.windowClosed) {
             // Exit if not done
             return false;
@@ -150,8 +135,6 @@ public class PendingSubmission extends PendingTask {
 
         try {
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
-        } catch (TskCoreException ex) {
-            throw ex;
         } finally {
             removeFromDB();
         }

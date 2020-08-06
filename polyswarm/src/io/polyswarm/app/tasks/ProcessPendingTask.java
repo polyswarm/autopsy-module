@@ -24,6 +24,7 @@
 package io.polyswarm.app.tasks;
 
 import io.polyswarm.app.apiclient.BadRequestException;
+import io.polyswarm.app.apiclient.NotAuthorizedException;
 import io.polyswarm.app.apiclient.RateLimitException;
 import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -74,35 +76,45 @@ public class ProcessPendingTask extends BackgroundTask {
             pendingList.addAll(db.getPendingHashLookups());
             pendingList.addAll(db.getPendingSubmissions());
             pendingList.addAll(db.getPendingRescans());
-            LOGGER.log(Level.INFO, "Found {0} pending tasks. Starting processing...", pendingList.size());
+            LOGGER.log(Level.FINE, "Found {0} pending tasks. Starting processing...", pendingList.size());
 
-            pendingList.forEach((pendingTask) -> {
+            for (PendingTask pendingTask : pendingList) {
                 try {
                     if (!progressHandles.containsKey(pendingTask)) {
-                        LOGGER.log(Level.INFO, "Creating a new progressbar for {0}", pendingTask);
+                        LOGGER.log(Level.FINE, "Creating a new progressbar for {0}", pendingTask);
                         ProgressHandle handle = pendingTask.getPendingTaskProgressHandle();
                         handle.start();
                         handle.switchToIndeterminate();
                         progressHandles.put(pendingTask, handle);
                     }
                     if (pendingTask.process(getAutopsyCase())) {
-                        LOGGER.log(Level.INFO, "{0} finished", pendingTask);
+                        LOGGER.log(Level.FINE, "{0} finished", pendingTask);
                         progressHandles.get(pendingTask).finish();
                     }
+                } catch (NotAuthorizedException ex) {
+                    LOGGER.log(Level.SEVERE, "Invalid API Key", ex);
+                    progressHandles.get(pendingTask).finish();
                 } catch (RateLimitException ex) {
-                    LOGGER.log(Level.SEVERE, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
+                    LOGGER.log(Level.WARNING, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
+                    SwingUtilities.invokeLater(new RateLimitDialogRunnable(ex.getMessage()));
+                    progressHandles.get(pendingTask).finish();
                 } catch (BadRequestException ex) {
                     LOGGER.log(Level.SEVERE, "Bad Request", ex);
+                    progressHandles.get(pendingTask).finish();
                 } catch (PolySwarmDbException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to update pending task in db.", ex);
+                    progressHandles.get(pendingTask).finish();
                 } catch (TskCoreException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
+                    progressHandles.get(pendingTask).finish();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to make request to PolySwarm", ex);
+                    progressHandles.get(pendingTask).finish();
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Unexpected exception while processing task", ex);
+                    progressHandles.get(pendingTask).finish();
                 }
-            });
+            }
             LOGGER.log(Level.INFO, "Completed a pass on pending tasks.");
 
         } catch (PolySwarmDbException ex) {
