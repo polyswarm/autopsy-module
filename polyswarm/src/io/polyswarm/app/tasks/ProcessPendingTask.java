@@ -115,7 +115,7 @@ public class ProcessPendingTask extends BackgroundTask {
                     progressHandles.get(pendingTask).finish();
                 }
             }
-            LOGGER.log(Level.INFO, "Completed a pass on pending tasks.");
+            LOGGER.log(Level.FINE, "Completed a pass on pending tasks.");
 
         } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Failed to get list of pending tasks from db.", ex);
