@@ -102,14 +102,8 @@ public class PendingHashLookup extends PendingTask {
             }
 
             updateBlackboard(autopsyCase, abstractFileId, artifactInstance, tags);
-        } catch (NotAuthorizedException ex) {
-            LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
         } catch (NotFoundException ex) {
             updateNotFound(autopsyCase, abstractFileId);
-        } catch (ServerException ex) {
-            LOGGER.log(Level.SEVERE, "Server Error.", ex);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "IOException.", ex);
         } finally {
             removeFromDB();
         }
@@ -138,7 +132,7 @@ public class PendingHashLookup extends PendingTask {
 
     @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: %s, submission_uuid: %s)", abstractFileId, md5Hash);
+        return String.format("PendingHashLookup(abstractFileID: %s, md5: %s)", abstractFileId, md5Hash);
     }
 
     @Override

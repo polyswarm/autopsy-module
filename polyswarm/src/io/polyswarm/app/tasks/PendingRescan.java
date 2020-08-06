@@ -86,34 +86,18 @@ public class PendingRescan extends PendingTask {
             try {
                 submitRescan();
                 return false;
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOException.", ex);
+                removeFromDB();
+                throw ex;
             }
-            // Return true these exceptions
-            removeFromDB();
-            return true;
-            // Check results of files with submission ID
         } else {
             try {
                 return checkSubmission(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: IOException.", ex);
+                LOGGER.log(Level.SEVERE, "Error checking rescan in PolySwarm.");
+                removeFromDB();
+                throw ex;
             }
-            // Return true these exceptions
-            removeFromDB();
-            return true;
         }
     }
 
@@ -153,8 +137,6 @@ public class PendingRescan extends PendingTask {
 
         try {
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
-        } catch (TskCoreException ex) {
-            throw ex;
         } finally {
             removeFromDB();
         }
