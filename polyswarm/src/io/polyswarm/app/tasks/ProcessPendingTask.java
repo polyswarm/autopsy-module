@@ -96,7 +96,7 @@ public class ProcessPendingTask extends BackgroundTask {
                     progressHandles.get(pendingTask).finish();
                 } catch (RateLimitException ex) {
                     LOGGER.log(Level.WARNING, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
-                    SwingUtilities.invokeLater(new RateLimitDialogRunnable(ex.getMessage()));
+                    SwingUtilities.invokeLater(new RateLimitDialogRunnable(pendingTask.getHumanReadableName()));
                     progressHandles.get(pendingTask).finish();
                 } catch (BadRequestException ex) {
                     LOGGER.log(Level.SEVERE, "Bad Request", ex);

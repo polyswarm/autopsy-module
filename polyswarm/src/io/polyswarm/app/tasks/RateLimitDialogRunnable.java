@@ -39,18 +39,18 @@ public class RateLimitDialogRunnable implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(RateLimitDialogRunnable.class.getName());
 
-    final String message;
+    final String requestName;
 
-    public RateLimitDialogRunnable(String message) {
-        this.message = message;
+    public RateLimitDialogRunnable(String requestName) {
+        this.requestName = requestName;
     }
 
     @Override
     @org.openide.util.NbBundle.Messages({"RateLimitDialogRunnable.title=Usage Limits Reached",
-        "RateLimitDialogRunnable.messageFormat=%s. Please visit https://polyswarm.network to upgrade. "})
+        "RateLimitDialogRunnable.messageFormat=Reached max uses of %s or Daily Requests. \nPlease visit https://polyswarm.network to upgrade your accord. \nWould you like to go there now?"})
     public void run() {
         int response = JOptionPane.showConfirmDialog(WindowManager.getDefault().getMainWindow(),
-                String.format(io.polyswarm.app.tasks.Bundle.RateLimitDialogRunnable_messageFormat(), message),
+                String.format(io.polyswarm.app.tasks.Bundle.RateLimitDialogRunnable_messageFormat(), requestName),
                 io.polyswarm.app.tasks.Bundle.RateLimitDialogRunnable_title(),
                 JOptionPane.ERROR_MESSAGE);
 
@@ -60,7 +60,7 @@ public class RateLimitDialogRunnable implements Runnable {
                 try {
                     desktop.browse(new URI("https://polyswarm.network"));
                 } catch (URISyntaxException | IOException ex) {
-                    LOGGER.log(Level.SEVERE, "Cannot optn https://polyswarm.network in the browser");
+                    LOGGER.log(Level.SEVERE, "Cannot open https://polyswarm.network in the browser");
                 }
             }
 
