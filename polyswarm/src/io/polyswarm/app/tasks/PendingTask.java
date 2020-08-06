@@ -55,6 +55,11 @@ import org.sleuthkit.datamodel.TskData;
 public abstract class PendingTask implements Cancellable {
 
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
+    private static final String POLYSCORE_DESCRIPTION = "PolyScore\u2122 is a threat scoring algorithm that provides "
+            + "the probability a given file contains malware. It weights engines' opinions based on historical "
+            + "performance known biases, malware family and other threat indicators, summarizing them into a single, "
+            + "authoritative score with context.";
+    private static final String NOT_FOUND = "Not Found in PolySwarm";
 
     public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
 
@@ -78,7 +83,7 @@ public abstract class PendingTask implements Cancellable {
     public static void updateNotFound(Case autopsyCase, Long abstractFileId) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, PolySwarmModule.getModuleName(), "Not Found in PolySwarm"));
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, PolySwarmModule.getModuleName(), NOT_FOUND));
     }
 
     /**
@@ -100,13 +105,14 @@ public abstract class PendingTask implements Cancellable {
 
         // Add all results attributes
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME, POLYSCORE_DESCRIPTION);
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, artifactInstance.polyscore);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, artifactInstance.lastScanned);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
         // notify UI to update and display this result
 
         for (Assertion assertion : artifactInstance.assertions) {
