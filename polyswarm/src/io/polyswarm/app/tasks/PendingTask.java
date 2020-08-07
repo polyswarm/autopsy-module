@@ -32,6 +32,7 @@ import io.polyswarm.app.apiclient.v2.requests.utils.Assertion;
 import io.polyswarm.app.apiclient.v2.requests.utils.Tag;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
 import io.polyswarm.app.datamodel.PolySwarmDb;
+import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
@@ -95,6 +96,7 @@ public abstract class PendingTask implements Cancellable {
      * @param artifactInstance response from PolySwarm
      */
     public static void updateBlackboard(Case autopsyCase, Long abstractFileId, ArtifactInstance artifactInstance, List<Tag> tags) throws TskCoreException {
+        PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
 
         // Set file to known bad when polyscore > 0.7 and at least 2 malicious responses
@@ -104,7 +106,10 @@ public abstract class PendingTask implements Cancellable {
 
         // Add all results attributes
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME, POLYSCORE_DESCRIPTION);
+        if (apiSettings.showPolyScore()) {
+            addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME, POLYSCORE_DESCRIPTION);
+        }
+
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, artifactInstance.polyscore);
         artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
