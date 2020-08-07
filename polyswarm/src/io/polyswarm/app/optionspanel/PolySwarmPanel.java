@@ -24,6 +24,8 @@
 package io.polyswarm.app.optionspanel;
 
 import java.util.logging.Logger;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.openide.util.NbBundle;
@@ -59,6 +61,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
         apiKeyErrorMsgLabel = new javax.swing.JLabel();
         apiKeyTextField = new javax.swing.JTextField();
         jTextField1 = new javax.swing.JTextField();
+        showPolyScoreCheckbox = new javax.swing.JCheckBox();
         advanceOptionsPanel = new javax.swing.JPanel();
         communityPanel = new javax.swing.JPanel();
         communityErrorMsgLabel = new javax.swing.JLabel();
@@ -112,20 +115,32 @@ final class PolySwarmPanel extends javax.swing.JPanel {
                 .addComponent(apiKeyErrorMsgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
+        org.openide.awt.Mnemonics.setLocalizedText(showPolyScoreCheckbox, org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.showPolyScoreCheckbox.text")); // NOI18N
+        showPolyScoreCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showPolyScoreCheckboxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout optionsPanelLayout = new javax.swing.GroupLayout(optionsPanel);
         optionsPanel.setLayout(optionsPanelLayout);
         optionsPanelLayout.setHorizontalGroup(
             optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(optionsPanelLayout.createSequentialGroup()
-                .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 287, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(showPolyScoreCheckbox, javax.swing.GroupLayout.PREFERRED_SIZE, 620, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(apiKeyPanel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         optionsPanelLayout.setVerticalGroup(
             optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(optionsPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(apiKeyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(showPolyScoreCheckbox, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(130, Short.MAX_VALUE))
         );
 
         apiKeyPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.apiKeyTitle.text")); // NOI18N
@@ -171,14 +186,14 @@ final class PolySwarmPanel extends javax.swing.JPanel {
             advanceOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(advanceOptionsPanelLayout.createSequentialGroup()
                 .addComponent(communityPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 287, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         advanceOptionsPanelLayout.setVerticalGroup(
             advanceOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(advanceOptionsPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(communityPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(60, Short.MAX_VALUE))
+                .addContainerGap(191, Short.MAX_VALUE))
         );
 
         communityPanel.getAccessibleContext().setAccessibleName(org.openide.util.NbBundle.getMessage(PolySwarmPanel.class, "PolySwarmPanel.communityTitle.text")); // NOI18N
@@ -189,17 +204,13 @@ final class PolySwarmPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane2)
-                .addContainerGap())
+            .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 638, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 197, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(193, Short.MAX_VALUE))
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 328, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(68, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -207,14 +218,21 @@ final class PolySwarmPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_apiKeyTextFieldActionPerformed
 
+    private void showPolyScoreCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showPolyScoreCheckboxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_showPolyScoreCheckboxActionPerformed
+
     private void customizeComponents() {
         // read settings and initialize GUI
         communityTextField.setText(settings.getCommunity());
         apiKeyTextField.setText(settings.getApiKey());
+        showPolyScoreCheckbox.setSelected(settings.showPolyScore());
 
         // listen to changes in form fields and call controller.changed()
         communityTextField.getDocument().addDocumentListener(new MyDocumentListener());
         apiKeyTextField.getDocument().addDocumentListener(new MyDocumentListener());
+        showPolyScoreCheckbox.addChangeListener(new MyChangeListener());
+
     }
 
     private void clearErrorMessages() {
@@ -226,6 +244,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
     void load() {
         communityTextField.setText(settings.getCommunity());
         apiKeyTextField.setText(settings.getApiKey());
+        showPolyScoreCheckbox.setSelected(settings.showPolyScore());
         clearErrorMessages();
         valid();
     }
@@ -234,6 +253,7 @@ final class PolySwarmPanel extends javax.swing.JPanel {
         // store modified settings
         settings.setCommunity(communityTextField.getText());
         settings.setApiKey(apiKeyTextField.getText());
+        settings.setShowPolyScore(showPolyScoreCheckbox.isSelected());
         settings.saveSettings();
     }
 
@@ -282,6 +302,18 @@ final class PolySwarmPanel extends javax.swing.JPanel {
     }
 
     /**
+     * Used to listen for changes in things other than text boxes.
+     */
+    private class MyChangeListener implements ChangeListener {
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            controller.changed();
+        }
+
+    }
+
+    /**
      * Used to listen for changes in text boxes. It lets the panel know things have been updated and that validation
      * needs to happen.
      */
@@ -320,5 +352,6 @@ final class PolySwarmPanel extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField1;
     private javax.swing.JPanel optionsPanel;
     private java.awt.PopupMenu popupMenu1;
+    private javax.swing.JCheckBox showPolyScoreCheckbox;
     // End of variables declaration//GEN-END:variables
 }

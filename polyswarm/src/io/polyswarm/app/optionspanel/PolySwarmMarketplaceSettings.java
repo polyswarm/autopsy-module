@@ -38,8 +38,10 @@ public final class PolySwarmMarketplaceSettings {
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
     private final String SETTINGS_TAG_API_KEY = "polyswarm.apikey"; // NON-NLS
     private final String SETTINGS_TAG_COMMUNITY = "polyswarm.community"; // NON-NLS
+    private final String SETTINGS_TAG_POLYSCORE = "polyswarm.polyscore"; // NON-NLS
     private String apiKey;
     private String community;
+    private Boolean polyScore;
 
     public PolySwarmMarketplaceSettings() {
         loadSettings();
@@ -58,17 +60,22 @@ public final class PolySwarmMarketplaceSettings {
         if (community == null || community.isEmpty()) {
             community = DEFAULT_COMMUNITY;
         }
+
+        String storedShowPolyScore = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_POLYSCORE);
+        polyScore = storedShowPolyScore == null || storedShowPolyScore.isEmpty();
     }
 
     public void saveSettings() {
-        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY, getApiKey());
-        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, getCommunity());
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY, apiKey);
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, community);
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_POLYSCORE, polyScore ? "" : "1");
     }
 
     public boolean isChanged() {
-        String jsonString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
+        String apiKeyString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
+        String communityString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY);
 
-        return !getApiKey().equals(jsonString);
+        return !getApiKey().equals(apiKeyString) || !getCommunity().equals(communityString);
     }
 
     public String getApiUrl() {
@@ -81,6 +88,10 @@ public final class PolySwarmMarketplaceSettings {
 
     public String getCommunity() {
         return community;
+    }
+
+    public Boolean showPolyScore() {
+        return polyScore;
     }
 
     /**
@@ -118,5 +129,14 @@ public final class PolySwarmMarketplaceSettings {
 
     public boolean validateCommunity(String newCommunity) {
         return newCommunity != null && !newCommunity.isEmpty();
+    }
+
+    public boolean setShowPolyScore(Boolean showPolyScore) {
+        this.polyScore = showPolyScore;
+        return true;
+    }
+
+    public boolean validateShowPolyScore(Boolean showPolyScore) {
+        return true;
     }
 }
