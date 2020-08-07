@@ -55,8 +55,9 @@ import org.sleuthkit.datamodel.TskData;
 public abstract class PendingTask implements Cancellable {
 
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
-    private static final String POLYSCORE_DESCRIPTION = "PolyScore™ is a single authoritative score generated from "
-            + "engine detections, and associated threat indicators, weighted by past performance.";
+    private static final String POLYSCORE_DESCRIPTION = "PolyScore™ is a single authoritative score, based "
+            + "on a model of present engine detections weighted by past performance, indicating the probability a given "
+            + "file contains malware.";
     private static final String NOT_FOUND = "Not Found in PolySwarm";
 
     public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
