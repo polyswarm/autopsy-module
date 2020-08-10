@@ -90,29 +90,37 @@ public class ProcessPendingTask extends BackgroundTask {
                     if (pendingTask.process(getAutopsyCase())) {
                         LOGGER.log(Level.FINE, "{0} finished", pendingTask);
                         progressHandles.get(pendingTask).finish();
+                        progressHandles.remove(pendingTask);
                     }
                 } catch (NotAuthorizedException ex) {
                     LOGGER.log(Level.SEVERE, "Invalid API Key", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (RateLimitException ex) {
                     LOGGER.log(Level.WARNING, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
                     SwingUtilities.invokeLater(new RateLimitDialogRunnable(pendingTask.getHumanReadableName()));
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (BadRequestException ex) {
                     LOGGER.log(Level.SEVERE, "Bad Request", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (PolySwarmDbException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to update pending task in db.", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (TskCoreException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to make request to PolySwarm", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Unexpected exception while processing task", ex);
                     progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 }
             }
             LOGGER.log(Level.FINE, "Completed a pass on pending tasks.");
