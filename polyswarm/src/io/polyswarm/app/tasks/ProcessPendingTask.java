@@ -24,14 +24,17 @@
 package io.polyswarm.app.tasks;
 
 import io.polyswarm.app.apiclient.BadRequestException;
+import io.polyswarm.app.apiclient.NotAuthorizedException;
 import io.polyswarm.app.apiclient.RateLimitException;
 import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -46,7 +49,14 @@ public class ProcessPendingTask extends BackgroundTask {
     private static final Logger LOGGER = Logger.getLogger(ProcessPendingTask.class.getName());
     private final PolySwarmDb dbInstance;
     private final Case autopsyCase;
-    private ProgressHandle progressHandle;
+    private final HashMap<PendingTask, ProgressHandle> progressHandles;
+
+    public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
+        super();
+        this.dbInstance = dbInstance;
+        this.autopsyCase = autopsyCase;
+        progressHandles = new HashMap<>();
+    }
 
     public PolySwarmDb getDbInstance() {
         return dbInstance;
@@ -54,12 +64,6 @@ public class ProcessPendingTask extends BackgroundTask {
 
     public Case getAutopsyCase() {
         return autopsyCase;
-    }
-
-    public ProcessPendingTask(PolySwarmDb dbInstance, Case autopsyCase) {
-        super();
-        this.dbInstance = dbInstance;
-        this.autopsyCase = autopsyCase;
     }
 
     @Override
@@ -72,48 +76,58 @@ public class ProcessPendingTask extends BackgroundTask {
             pendingList.addAll(db.getPendingHashLookups());
             pendingList.addAll(db.getPendingSubmissions());
             pendingList.addAll(db.getPendingRescans());
-
-            if (pendingList.isEmpty()) {
-                if (progressHandle != null) {
-                    progressHandle.finish();
-                    progressHandle = null;
-                }
-                LOGGER.log(Level.INFO, "No pending submissions found.");
-                return;
-            } else if (progressHandle == null) {
-                progressHandle = getInitialProgressHandle();
-                progressHandle.start();
-                progressHandle.switchToIndeterminate();
-            }
-            LOGGER.log(Level.INFO, "Found {0} pending tasks. Starting processing...", pendingList.size());
+            LOGGER.log(Level.FINE, "Found {0} pending tasks. Starting processing...", pendingList.size());
 
             for (PendingTask pendingTask : pendingList) {
                 try {
-                    pendingTask.process(getAutopsyCase());
+                    if (!progressHandles.containsKey(pendingTask)) {
+                        LOGGER.log(Level.FINE, "Creating a new progressbar for {0}", pendingTask);
+                        ProgressHandle handle = pendingTask.getPendingTaskProgressHandle();
+                        handle.start();
+                        handle.switchToIndeterminate();
+                        progressHandles.put(pendingTask, handle);
+                    }
+                    if (pendingTask.process(getAutopsyCase())) {
+                        LOGGER.log(Level.FINE, "{0} finished", pendingTask);
+                        progressHandles.get(pendingTask).finish();
+                        progressHandles.remove(pendingTask);
+                    }
+                } catch (NotAuthorizedException ex) {
+                    LOGGER.log(Level.SEVERE, "Invalid API Key", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (RateLimitException ex) {
-                    LOGGER.log(Level.SEVERE, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
+                    LOGGER.log(Level.WARNING, "Exeeded rate limits, you need to purchase a larger package, or wait a moment before trying again.");
+                    SwingUtilities.invokeLater(new RateLimitDialogRunnable(pendingTask.getHumanReadableName()));
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (BadRequestException ex) {
                     LOGGER.log(Level.SEVERE, "Bad Request", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (PolySwarmDbException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to update pending task in db.", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (TskCoreException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to get abstractFile from current case", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, "Failed to make request to PolySwarm", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 } catch (Exception ex) {
                     LOGGER.log(Level.SEVERE, "Unexpected exception while processing task", ex);
+                    progressHandles.get(pendingTask).finish();
+                    progressHandles.remove(pendingTask);
                 }
             }
-            LOGGER.log(Level.INFO, "Completed a pass on pending tasks.");
+            LOGGER.log(Level.FINE, "Completed a pass on pending tasks.");
 
         } catch (PolySwarmDbException ex) {
             LOGGER.log(Level.SEVERE, "Failed to get list of pending tasks from db.", ex);
         }
-    }
-
-    @NbBundle.Messages({"ProcessPendingTask.populatingDb.status=Processing Requests to PolySwarm.",})
-    private ProgressHandle getInitialProgressHandle() {
-        return ProgressHandle.createHandle(io.polyswarm.app.tasks.Bundle.ProcessPendingTask_populatingDb_status(), this);
     }
 
 }

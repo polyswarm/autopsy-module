@@ -76,7 +76,7 @@ public class ArtifactInstanceResponseHandler implements ResponseHandler<Artifact
      * @param statusCode Status code from PolySwarm
      * @param responseString Response from PolySwarm as a String
      */
-    private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, NotFoundException {
+    private void handle4xx(Integer statusCode, String responseString) throws BadRequestException, NotAuthorizedException, RateLimitException, NotFoundException, ClientProtocolException {
         switch (statusCode) {
             case 400:
                 throw new BadRequestException(responseString);
@@ -86,6 +86,8 @@ public class ArtifactInstanceResponseHandler implements ResponseHandler<Artifact
                 throw new NotFoundException(responseString);
             case 429:
                 throw new RateLimitException(responseString);
+            default:
+                throw new ClientProtocolException(String.format("Client request failed. Status code: %s, Response: %s.", statusCode, responseString));
         }
     }
 }

@@ -35,10 +35,10 @@ import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
-import org.sleuthkit.datamodel.AbstractFile;
 import org.sleuthkit.datamodel.TskCoreException;
 
 /**
@@ -49,25 +49,31 @@ public class PendingHashLookup extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingHashLookup.class.getName());
 
     private final String md5Hash;
-    private final long abstractFileId;
+    private final Long abstractFileId;
+    private final Boolean cancelled;
 
-    public PendingHashLookup(long abstractFileId, String md5Hash) {
+    public PendingHashLookup(long abstractFileId, String md5Hash, Boolean cancelled) {
         this.abstractFileId = abstractFileId;
         this.md5Hash = md5Hash;
-    }
-
-    public PendingHashLookup(AbstractFile abstractFile) {
-        abstractFileId = abstractFile.getId();
-        md5Hash = abstractFile.getMd5Hash();
-
+        this.cancelled = cancelled;
     }
 
     public String getMd5Hash() {
         return md5Hash;
     }
 
-    public long getAbstractFileId() {
+    public Long getAbstractFileId() {
         return abstractFileId;
+    }
+
+    @Override
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        }
+
+        return lookupHash(autopsyCase);
     }
 
     /**
@@ -76,7 +82,7 @@ public class PendingHashLookup extends PendingTask {
      *
      * @param autopsyCase open case
      */
-    public void lookupHash(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
+    public boolean lookupHash(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Looking up Hash {0}", md5Hash);
         try {
             ArtifactInstance artifactInstance = ApiClientV2.searchHash(md5Hash);
@@ -84,8 +90,9 @@ public class PendingHashLookup extends PendingTask {
             LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
             if (!artifactInstance.windowClosed) {
                 // Exit if not done
-                return;
+                return false;
             }
+
             List<Tag> tags;
             try {
                 tags = ApiClientV2.getTags(artifactInstance);
@@ -95,25 +102,54 @@ public class PendingHashLookup extends PendingTask {
             }
 
             updateBlackboard(autopsyCase, abstractFileId, artifactInstance, tags);
-        } catch (NotAuthorizedException ex) {
-            LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
         } catch (NotFoundException ex) {
             updateNotFound(autopsyCase, abstractFileId);
-        } catch (ServerException ex) {
-            LOGGER.log(Level.SEVERE, "Server Error.", ex);
         } finally {
-            getDbInstance().deletePendingHashLookup(this);
+            removeFromDB();
         }
-    }
-
-    @Override
-    public boolean process(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
-        lookupHash(autopsyCase);
         return true;
     }
 
     @Override
+    public boolean cancel() {
+        try {
+            getDbInstance().cancelPendingHashLookup(this);
+            return true;
+        } catch (PolySwarmDbException e) {
+            LOGGER.log(Level.SEVERE, "Error cancelling Pending Rescan");
+            return false;
+        }
+    }
+
+    private void removeFromDB() throws PolySwarmDbException {
+        getDbInstance().deletePendingHashLookup(this);
+    }
+
+    @Override
+    public String getHumanReadableName() {
+        return "Hash Lookup";
+    }
+
+    @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", abstractFileId, md5Hash);
+        return String.format("PendingHashLookup(abstractFileID: %s, md5: %s)", abstractFileId, md5Hash);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof PendingHashLookup) {
+            PendingHashLookup otherHashLookup = (PendingHashLookup) other;
+            return otherHashLookup.md5Hash.equals(md5Hash) && otherHashLookup.abstractFileId.equals(abstractFileId);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.md5Hash);
+        hash = 59 * hash + Objects.hashCode(this.abstractFileId);
+        return hash;
     }
 }

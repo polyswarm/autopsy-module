@@ -35,6 +35,7 @@ import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -49,11 +50,13 @@ public class PendingRescan extends PendingTask {
     private final String rescanId;
     private final String sha256Hash;
     private final Long abstractFileID;
+    private final Boolean cancelled;
 
-    public PendingRescan(Long abstractFileID, String sha256Hash, String uuid) {
+    public PendingRescan(Long abstractFileID, String sha256Hash, String uuid, Boolean cancelled) {
         this.abstractFileID = abstractFileID;
         this.sha256Hash = sha256Hash;
         this.rescanId = uuid;
+        this.cancelled = cancelled;
     }
 
     /**
@@ -72,6 +75,30 @@ public class PendingRescan extends PendingTask {
      */
     public Long getAbstractFileId() {
         return abstractFileID;
+    }
+
+    @Override
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        } else if (rescanId.isEmpty()) {
+            try {
+                submitRescan();
+                return false;
+            } catch (IOException ex) {
+                removeFromDB();
+                throw ex;
+            }
+        } else {
+            try {
+                return checkSubmission(autopsyCase);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error checking rescan in PolySwarm.");
+                removeFromDB();
+                throw ex;
+            }
+        }
     }
 
     /**
@@ -110,8 +137,6 @@ public class PendingRescan extends PendingTask {
 
         try {
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
-        } catch (TskCoreException ex) {
-            throw ex;
         } finally {
             removeFromDB();
         }
@@ -119,37 +144,13 @@ public class PendingRescan extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
-        if (rescanId.isEmpty()) {
-            try {
-                submitRescan();
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
+    public boolean cancel() {
+        try {
+            getDbInstance().cancelPendingRescan(this);
             return true;
-            // Check results of files with submission ID
-        } else {
-            try {
-                return checkSubmission(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
-            // Return true these exceptions
-            return true;
+        } catch (PolySwarmDbException e) {
+            LOGGER.log(Level.SEVERE, "Error cancelling Pending Rescan");
+            return false;
         }
     }
 
@@ -158,7 +159,30 @@ public class PendingRescan extends PendingTask {
     }
 
     @Override
+    public String getHumanReadableName() {
+        return "Rescan";
+    }
+
+    @Override
     public String toString() {
-        return String.format("PendingRescan(abstractFileID: {0}, sha256Hash:{1} rescanUuid:{1})", getAbstractFileId().toString(), getSha256Hash(), getRescanId());
+        return String.format("PendingRescan(abstractFileID: %s, sha256Hash: %s rescanUuid: %s)", getAbstractFileId().toString(), getSha256Hash(), getRescanId());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof PendingRescan) {
+            PendingRescan otherRescan = (PendingRescan) other;
+            return otherRescan.abstractFileID.equals(abstractFileID) && otherRescan.sha256Hash.equals(sha256Hash);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.sha256Hash);
+        hash = 59 * hash + Objects.hashCode(this.abstractFileID);
+        return hash;
     }
 }

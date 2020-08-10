@@ -29,66 +29,55 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Worker;
-import org.openide.util.Cancellable;
 import org.openide.util.NbBundle;
 
-    /**
-     * Abstract base class for tasks
-     */
-    @NbBundle.Messages({"BackgroundTask.InnerTask.progress.name=progress",
-        "BackgroundTask.InnerTask.message.name=status"})
-    public abstract class BackgroundTask implements Runnable, Cancellable {
+/**
+ * Abstract base class for tasks
+ */
+@NbBundle.Messages({"BackgroundTask.InnerTask.progress.name=progress",
+    "BackgroundTask.InnerTask.message.name=status"})
+public abstract class BackgroundTask implements Runnable {
 
-        private final SimpleObjectProperty<Worker.State> state = new SimpleObjectProperty<>(Worker.State.READY);
-        private final SimpleDoubleProperty progress = new SimpleDoubleProperty(this, Bundle.BackgroundTask_InnerTask_progress_name());
-        private final SimpleStringProperty message = new SimpleStringProperty(this, Bundle.BackgroundTask_InnerTask_message_name());
+    private final SimpleObjectProperty<Worker.State> state = new SimpleObjectProperty<>(Worker.State.READY);
+    private final SimpleDoubleProperty progress = new SimpleDoubleProperty(this, Bundle.BackgroundTask_InnerTask_progress_name());
+    private final SimpleStringProperty message = new SimpleStringProperty(this, Bundle.BackgroundTask_InnerTask_message_name());
 
-        protected BackgroundTask() {
-        }
-
-        public double getProgress() {
-            return progress.get();
-        }
-
-        public final void updateProgress(Double workDone) {
-            this.progress.set(workDone);
-        }
-
-        public String getMessage() {
-            return message.get();
-        }
-
-        public final void updateMessage(String Status) {
-            this.message.set(Status);
-        }
-
-        public SimpleDoubleProperty progressProperty() {
-            return progress;
-        }
-
-        public SimpleStringProperty messageProperty() {
-            return message;
-        }
-
-        public Worker.State getState() {
-            return state.get();
-        }
-
-        public ReadOnlyObjectProperty<Worker.State> stateProperty() {
-            return new ReadOnlyObjectWrapper<>(state.get());
-        }
-
-        @Override
-        public synchronized boolean cancel() {
-            updateState(Worker.State.CANCELLED);
-            return true;
-        }
-
-        protected void updateState(Worker.State newState) {
-            state.set(newState);
-        }
-
-        protected synchronized boolean isCancelled() {
-            return getState() == Worker.State.CANCELLED;
-        }
+    protected BackgroundTask() {
     }
+
+    public double getProgress() {
+        return progress.get();
+    }
+
+    public final void updateProgress(Double workDone) {
+        this.progress.set(workDone);
+    }
+
+    public String getMessage() {
+        return message.get();
+    }
+
+    public final void updateMessage(String Status) {
+        this.message.set(Status);
+    }
+
+    public SimpleDoubleProperty progressProperty() {
+        return progress;
+    }
+
+    public SimpleStringProperty messageProperty() {
+        return message;
+    }
+
+    public Worker.State getState() {
+        return state.get();
+    }
+
+    public ReadOnlyObjectProperty<Worker.State> stateProperty() {
+        return new ReadOnlyObjectWrapper<>(state.get());
+    }
+
+    protected void updateState(Worker.State newState) {
+        state.set(newState);
+    }
+}

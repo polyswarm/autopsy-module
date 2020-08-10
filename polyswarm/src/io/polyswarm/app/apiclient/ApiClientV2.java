@@ -29,10 +29,7 @@ import io.polyswarm.app.apiclient.v2.requests.ArtifactSubmissionStatusRequest;
 import io.polyswarm.app.apiclient.v2.requests.RescanRequest;
 import io.polyswarm.app.apiclient.v2.requests.SubmitArtifactRequest;
 import io.polyswarm.app.apiclient.v2.requests.TagRequest;
-import io.polyswarm.app.apiclient.v2.requests.TestRequest;
-import io.polyswarm.app.apiclient.v2.requests.TestResponse;
 import io.polyswarm.app.apiclient.v2.requests.utils.Tag;
-import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -157,27 +154,5 @@ public class ApiClientV2 {
             // Not found is fine, just empty list
             return new ArrayList<>();
         }
-    }
-
-    /**
-     * Do a GET request for the client API status.
-     *
-     * @param apiSettings - Instance of the API settings
-     * @return true if connection successful, else false
-     */
-    public static TestResponse testConnection(PolySwarmMarketplaceSettings apiSettings) {
-
-        try {
-            return new TestRequest().makeRequest();
-        } catch (URISyntaxException ex) {
-            LOGGER.log(Level.SEVERE, "Invalid API URI.", ex);
-        } catch (NotAuthorizedException ex) {
-            LOGGER.log(Level.SEVERE, "Invalid API Key.", ex);
-        } catch (BadRequestException ex) {
-            LOGGER.log(Level.SEVERE, "Invalid UUID.", ex);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Error testing connection", ex);
-        }
-        return new TestResponse(false);
     }
 }

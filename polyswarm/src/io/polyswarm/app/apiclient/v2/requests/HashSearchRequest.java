@@ -42,6 +42,7 @@ import org.sleuthkit.datamodel.AbstractFile;
  * Make a request to search for the given hash
  */
 public class HashSearchRequest implements Request<ArtifactInstance> {
+
     private final static Logger LOGGER = Logger.getLogger(HashSearchRequest.class.getName());
     String md5Hash;
 
@@ -55,7 +56,7 @@ public class HashSearchRequest implements Request<ArtifactInstance> {
 
     @Override
     public ArtifactInstance makeRequest() throws URISyntaxException, NotAuthorizedException, BadRequestException, IOException, NotFoundException {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try ( CloseableHttpClient httpclient = HttpClients.createDefault()) {
             PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
 
             String uri = String.format("%ssearch/hash/md5", apiSettings.getApiUrl());

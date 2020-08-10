@@ -1,4 +1,4 @@
- /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -21,27 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.app.apiclient.v2.requests;
+package io.polyswarm.app.datamodel.migrations;
 
-import io.polyswarm.app.apiclient.BadRequestException;
-import io.polyswarm.app.apiclient.NotAuthorizedException;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
- * Turn the server response on a TestRequest into a TestResponse
+ *
+ * @author rl
  */
-public class TestResponseHandler implements ResponseHandler<TestResponse> {
-    private final static Logger LOGGER = Logger.getLogger(ArtifactInstanceResponseHandler.class.getName());
+public class CreatePendingRescanMigration implements Migration {
 
     @Override
-    public TestResponse handleResponse(HttpResponse response) throws NotAuthorizedException, BadRequestException, ClientProtocolException, IOException {
-        Integer statusCode = response.getStatusLine().getStatusCode();
-        LOGGER.log(Level.INFO, String.format("%d", statusCode));
-        return new TestResponse(statusCode / 100 == 2);
+    public void run(Connection connection) throws SQLException {
+        StringBuilder createPendingRescanTable = new StringBuilder();
+        createPendingRescanTable.append("CREATE TABLE IF NOT EXISTS pending_rescans(");
+        createPendingRescanTable.append("id integer primary key autoincrement NOT NULL,");
+        createPendingRescanTable.append("abstract_file_id integer NOT NULL,");
+        createPendingRescanTable.append("sha256_hash text NOT NULL,");
+        createPendingRescanTable.append("rescan_uuid text NOT NULL,");
+        createPendingRescanTable.append("CONSTRAINT abstract_file_id_unique UNIQUE (abstract_file_id)");
+        createPendingRescanTable.append(")");
+
+        Statement statement = connection.createStatement();
+        statement.execute(createPendingRescanTable.toString());
     }
+
 }

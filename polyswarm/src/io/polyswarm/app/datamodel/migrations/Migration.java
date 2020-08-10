@@ -1,4 +1,4 @@
- /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -21,15 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package io.polyswarm.app.apiclient.v2.requests;
+package io.polyswarm.app.datamodel.migrations;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
- * Test results from TestRequest
+ * Interface for defining a migration to the database
+ *
+ * Note for implementers: Make sure your migration can only run once, as we don't have a table to track these
+ *
  */
-public class TestResponse {
-    public final boolean passed;
+public interface Migration {
 
-    public TestResponse(boolean passed) {
-        this.passed = passed;
-    }
+    public void run(Connection connection) throws SQLException;
 }

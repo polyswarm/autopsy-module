@@ -1,4 +1,4 @@
- /*
+/*
  * The MIT License
  *
  * Copyright 2020 PolySwarm PTE. LTD.
@@ -25,6 +25,7 @@ package io.polyswarm.app.contextmenu;
 
 import io.polyswarm.app.datamodel.PolySwarmDb;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
+import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,12 +34,12 @@ import javax.swing.JOptionPane;
 import org.openide.windows.WindowManager;
 import org.sleuthkit.datamodel.AbstractFile;
 
-
 /**
- * Adds a hash lookup action that queries polyswarm about the artifact in question
- * Update the blackboard with results from the hash lookup
+ * Adds a hash lookup action that queries polyswarm about the artifact in question Update the blackboard with results
+ * from the hash lookup
  */
 public class HashLookupAction extends AbstractAction {
+
     private static final long serivalVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(HashLookupAction.class.getName());
     private final AbstractFile abstractFile;
@@ -54,6 +55,12 @@ public class HashLookupAction extends AbstractAction {
         "HashLookupAction.alreadyPending.message=Hash lookup is already in progress.",
         "HashLookupAction.messageDialog.title=PolySwarm Hash Lookup"})
     public void actionPerformed(ActionEvent event) {
+        PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
+        if (apiSettings.getApiKey().isEmpty()) {
+            ApiKeyWarningDialog.show();
+            return;
+        }
+
         if (abstractFile != null) {
             addPendingHashLookup(abstractFile);
         }
@@ -71,14 +78,14 @@ public class HashLookupAction extends AbstractAction {
                 // add hash to pending search
                 instance.newPendingHashLookup(abstractFileId, md5Hash);
                 LOGGER.log(Level.FINE, String.format("Added hash search to pending db: abstractFileId: %s, md5Hash: %s.",
-                abstractFileId.toString(),
-                md5Hash));
+                        abstractFileId.toString(),
+                        md5Hash));
             } else {
                 LOGGER.log(Level.INFO, "Hash is already pending, not re-submitting.");
                 JOptionPane.showMessageDialog(WindowManager.getDefault().getMainWindow(),
-                    Bundle.HashLookupAction_alreadyPending_message(),
-                    Bundle.HashLookupAction_messageDialog_title(),
-                    JOptionPane.ERROR_MESSAGE);
+                        Bundle.HashLookupAction_alreadyPending_message(),
+                        Bundle.HashLookupAction_messageDialog_title(),
+                        JOptionPane.ERROR_MESSAGE);
             }
 
         } catch (PolySwarmDbException ex) {

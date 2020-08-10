@@ -42,6 +42,8 @@ import org.apache.commons.dbcp2.BasicDataSource;
  * Manage the database content and connections to the database.
  *
  * Note: code largely based off of Autopsy's centralrepository sqlite implementation.
+ *
+ * We should break this up, and let the PendingTask classes manage the db for themselvs
  */
 public class PolySwarmDb {
 
@@ -326,6 +328,37 @@ public class PolySwarmDb {
     }
 
     /**
+     * Marks an existing PendingSubmission as cancelled
+     *
+     * @param pendingSubmission
+     * @throws PolySwarmDbException
+     */
+    public void cancelPendingSubmission(PendingSubmission pendingSubmission) throws PolySwarmDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "UPDATE pending_submissions SET cancelled=? WHERE abstract_file_id=?";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setLong(2, pendingSubmission.getAbstractFileId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new PolySwarmDbException("Error updating pending_submissions table.", ex); // NON-NLS
+            } finally {
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
      * Check to see if a file is already in the pending_submissions table.
      *
      * @param abstractFileId Autopsy AbstractFile ID number
@@ -383,7 +416,7 @@ public class PolySwarmDb {
             PendingSubmission psResult;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
-            String sql = "SELECT abstract_file_id, submission_uuid FROM pending_submissions";
+            String sql = "SELECT abstract_file_id, submission_uuid, cancelled FROM pending_submissions";
             try {
                 preparedStatement = conn.prepareStatement(sql);
                 resultSet = preparedStatement.executeQuery();
@@ -447,7 +480,8 @@ public class PolySwarmDb {
             return null;
         }
 
-        return new PendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"));
+        return new PendingSubmission(resultSet.getLong("abstract_file_id"), resultSet.getString("submission_uuid"),
+                resultSet.getBoolean("cancelled"));
     }
 
     /**
@@ -518,6 +552,37 @@ public class PolySwarmDb {
     }
 
     /**
+     * Marks an existing PendingRescan as cancelled
+     *
+     * @param pendingSubmission
+     * @throws PolySwarmDbException
+     */
+    public void cancelPendingRescan(PendingRescan pendingRescan) throws PolySwarmDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "UPDATE pending_rescan SET cancelled=? WHERE abstract_file_id=?";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setLong(2, pendingRescan.getAbstractFileId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new PolySwarmDbException("Error updating pending_rescan table.", ex); // NON-NLS
+            } finally {
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
      * Check to see if a file is already in the pending_submissions table.
      *
      * @param abstractFileId Autopsy AbstractFile ID number
@@ -575,7 +640,7 @@ public class PolySwarmDb {
             PendingRescan psResult;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
-            String sql = "SELECT abstract_file_id, sha256_hash, rescan_uuid FROM pending_rescans";
+            String sql = "SELECT abstract_file_id, sha256_hash, rescan_uuid, cancelled FROM pending_rescans";
             try {
                 preparedStatement = conn.prepareStatement(sql);
                 resultSet = preparedStatement.executeQuery();
@@ -639,7 +704,8 @@ public class PolySwarmDb {
             return null;
         }
 
-        return new PendingRescan(resultSet.getLong("abstract_file_id"), resultSet.getString("sha256_hash"), resultSet.getString("rescan_uuid"));
+        return new PendingRescan(resultSet.getLong("abstract_file_id"), resultSet.getString("sha256_hash"),
+                resultSet.getString("rescan_uuid"), resultSet.getBoolean("cancelled"));
     }
 
     /**
@@ -717,6 +783,37 @@ public class PolySwarmDb {
     }
 
     /**
+     * Marks an existing PendingHashLookup as cancelled
+     *
+     * @param pendingSubmission
+     * @throws PolySwarmDbException
+     */
+    public void cancelPendingHashLookup(PendingHashLookup pendingHashLookup) throws PolySwarmDbException {
+        try {
+            acquireExclusiveLock();
+
+            Connection conn = connect();
+
+            PreparedStatement preparedStatement = null;
+            String sql = "UPDATE pending_rescan SET cancelled=? WHERE abstract_file_id=?";
+
+            try {
+                preparedStatement = conn.prepareStatement(sql);
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setLong(2, pendingHashLookup.getAbstractFileId());
+                preparedStatement.executeUpdate();
+            } catch (SQLException ex) {
+                throw new PolySwarmDbException("Error updating pending_rescan table.", ex); // NON-NLS
+            } finally {
+                PolySwarmDbUtils.closeStatement(preparedStatement);
+                PolySwarmDbUtils.closeConnection(conn);
+            }
+        } finally {
+            releaseExclusiveLock();
+        }
+    }
+
+    /**
      * Get the list of pending hashes from the pending_hashes table.
      *
      * @return List of PendingHashLookups's.
@@ -733,7 +830,7 @@ public class PolySwarmDb {
             PendingHashLookup psResult;
             PreparedStatement preparedStatement = null;
             ResultSet resultSet = null;
-            String sql = "SELECT abstract_file_id, md5_hash FROM pending_hashes";
+            String sql = "SELECT abstract_file_id, md5_hash, cancelled FROM pending_hashes";
             try {
                 preparedStatement = conn.prepareStatement(sql);
                 resultSet = preparedStatement.executeQuery();
@@ -797,7 +894,8 @@ public class PolySwarmDb {
             return null;
         }
 
-        return new PendingHashLookup(resultSet.getLong("abstract_file_id"), resultSet.getString("md5_hash"));
+        return new PendingHashLookup(resultSet.getLong("abstract_file_id"), resultSet.getString("md5_hash"),
+                resultSet.getBoolean("cancelled"));
     }
 
     /**

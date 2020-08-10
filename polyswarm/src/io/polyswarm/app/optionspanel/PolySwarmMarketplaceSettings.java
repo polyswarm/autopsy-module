@@ -23,9 +23,6 @@
  */
 package io.polyswarm.app.optionspanel;
 
-import io.polyswarm.app.apiclient.ApiClientV2;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.coreutils.ModuleSettings;
 
@@ -39,12 +36,12 @@ public final class PolySwarmMarketplaceSettings {
     private final String DEFAULT_URL = "https://api.polyswarm.network/v2/"; // NON-NLS
     private final String DEFAULT_COMMUNITY = "default"; // NON-NLS
     private final String MODULE_NAME = "PolySwarm"; // NON-NLS
-    private final String SETTINGS_TAG_API_URL = "polyswarm.url"; // NON-NLS
     private final String SETTINGS_TAG_API_KEY = "polyswarm.apikey"; // NON-NLS
     private final String SETTINGS_TAG_COMMUNITY = "polyswarm.community"; // NON-NLS
-    private String apiUrl;
+    private final String SETTINGS_TAG_POLYSCORE = "polyswarm.polyscore"; // NON-NLS
     private String apiKey;
     private String community;
+    private Boolean polyScore;
 
     public PolySwarmMarketplaceSettings() {
         loadSettings();
@@ -54,11 +51,6 @@ public final class PolySwarmMarketplaceSettings {
      * Read the settings from the module's config. If any are missing, set to defaults.
      */
     public void loadSettings() {
-        apiUrl = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL);
-        if (apiUrl == null || apiUrl.isEmpty()) {
-            apiUrl = DEFAULT_URL;
-        }
-
         apiKey = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
         if (apiKey == null || apiKey.isEmpty()) {
             apiKey = DEFAULT_API_KEY;
@@ -68,40 +60,26 @@ public final class PolySwarmMarketplaceSettings {
         if (community == null || community.isEmpty()) {
             community = DEFAULT_COMMUNITY;
         }
+
+        String storedShowPolyScore = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_POLYSCORE);
+        polyScore = storedShowPolyScore == null || storedShowPolyScore.isEmpty();
     }
 
     public void saveSettings() {
-        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL, getApiUrl());
-        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY, getApiKey());
-        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, getCommunity());
-    }
-
-    public boolean testSettings() {
-        return ApiClientV2.testConnection(this).passed;
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY, apiKey);
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY, community);
+        ModuleSettings.setConfigSetting(MODULE_NAME, SETTINGS_TAG_POLYSCORE, polyScore ? "" : "1");
     }
 
     public boolean isChanged() {
-        String urlString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_URL);
-        String jsonString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
+        String apiKeyString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_API_KEY);
+        String communityString = ModuleSettings.getConfigSetting(MODULE_NAME, SETTINGS_TAG_COMMUNITY);
 
-        return !getApiUrl().equals(urlString)
-                || !getApiKey().equals(jsonString);
+        return !getApiKey().equals(apiKeyString) || !getCommunity().equals(communityString);
     }
 
     public String getApiUrl() {
-        return apiUrl;
-    }
-
-    /**
-     * Get the URI object containing the URI for the status endpoint.
-     *
-     * The status endpoint is /status
-     *
-     * @return URI object
-     * @throws URISyntaxException
-     */
-    public String getStatusUrl() throws URISyntaxException {
-        return getApiUrl().concat(String.format("consumer/community/%s/status", getCommunity()));
+        return DEFAULT_URL;
     }
 
     public String getApiKey() {
@@ -112,28 +90,8 @@ public final class PolySwarmMarketplaceSettings {
         return community;
     }
 
-    /**
-     * Set the new URL and test if it's a valid URI. If valid, save it to this instance.
-     *
-     * @param newUrl New URL
-     * @return true if valid and set, else false
-     */
-    public boolean setApiUrl(String newUrl) {
-
-        if (!newUrl.isEmpty()) {
-            try {
-                apiUrl = newUrl;
-                if (!newUrl.endsWith("/")) {
-                    apiUrl = String.format("%s/", newUrl);
-                }
-                URI u = new URI(newUrl);
-                return true;
-            } catch (URISyntaxException ex) {
-                return false;
-            }
-        }
-
-        return false;
+    public Boolean showPolyScore() {
+        return polyScore;
     }
 
     /**
@@ -150,11 +108,35 @@ public final class PolySwarmMarketplaceSettings {
         return true;
     }
 
+    public boolean validateApiKey(String newApiKey) {
+        return true;
+    }
+
+    /**
+     * Set the new community and test if it's valid.
+     *
+     *
+     * @param newCommunity new community
+     * @return true if valid and set, else false
+     */
     public boolean setCommunity(String newCommunity) {
-        if (newCommunity != null && !newCommunity.isEmpty()) {
+        if (validateCommunity(newCommunity)) {
             community = newCommunity;
             return true;
         }
         return false;
+    }
+
+    public boolean validateCommunity(String newCommunity) {
+        return newCommunity != null && !newCommunity.isEmpty();
+    }
+
+    public boolean setShowPolyScore(Boolean showPolyScore) {
+        this.polyScore = showPolyScore;
+        return true;
+    }
+
+    public boolean validateShowPolyScore(Boolean showPolyScore) {
+        return true;
     }
 }

@@ -35,6 +35,7 @@ import io.polyswarm.app.datamodel.PolySwarmDbException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.sleuthkit.autopsy.casemodule.Case;
@@ -49,10 +50,12 @@ public class PendingSubmission extends PendingTask {
     private static final Logger LOGGER = Logger.getLogger(PendingSubmission.class.getName());
     private final String submissionId;
     private final Long abstractFileID;
+    private final boolean cancelled;
 
-    public PendingSubmission(Long abstractFileID, String uuid) {
+    public PendingSubmission(Long abstractFileID, String uuid, boolean cancelled) {
         this.abstractFileID = abstractFileID;
         this.submissionId = uuid;
+        this.cancelled = cancelled;
     }
 
     /**
@@ -69,6 +72,31 @@ public class PendingSubmission extends PendingTask {
         return abstractFileID;
     }
 
+    @Override
+    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
+        if (cancelled) {
+            removeFromDB();
+            return true;
+        } else if (submissionId.isEmpty()) {
+            try {
+                submitFile(autopsyCase);
+                return false;
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error submitting file to PolySwarm.");
+                removeFromDB();
+                throw ex;
+            }
+        } else {
+            try {
+                return checkSubmission(autopsyCase);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Error checking submission in PolySwarm.");
+                removeFromDB();
+                throw ex;
+            }
+        }
+    }
+
     /**
      * Uploads the file to PolySwarm, and updates the task with the submissionId
      *
@@ -78,6 +106,7 @@ public class PendingSubmission extends PendingTask {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.submitFile(abstractFile);
         getDbInstance().updatePendingSubmissionId(abstractFileID, artifactInstance.id);
+        LOGGER.log(Level.INFO, "Updated Submission on {0}", abstractFileID.toString());
     }
 
     /**
@@ -90,7 +119,7 @@ public class PendingSubmission extends PendingTask {
     public boolean checkSubmission(Case autopsyCase) throws PolySwarmDbException, NotAuthorizedException, BadRequestException, NotFoundException, RateLimitException, IOException, TskCoreException {
         LOGGER.log(Level.FINE, "Checking Submission {0}", abstractFileID);
         ArtifactInstance artifactInstance = ApiClientV2.getSubmissionStatus(submissionId);
-        LOGGER.log(Level.FINE, "Got response{0}", artifactInstance.toString());
+        LOGGER.log(Level.FINE, "Got response {0}", artifactInstance.toString());
         if (!artifactInstance.windowClosed) {
             // Exit if not done
             return false;
@@ -106,8 +135,6 @@ public class PendingSubmission extends PendingTask {
 
         try {
             updateBlackboard(autopsyCase, abstractFileID, artifactInstance, tags);
-        } catch (TskCoreException ex) {
-            throw ex;
         } finally {
             removeFromDB();
         }
@@ -115,37 +142,13 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
-    public boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException {
-        if (submissionId.isEmpty()) {
-            try {
-                submitFile(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
+    public boolean cancel() {
+        try {
+            getDbInstance().cancelPendingSubmission(this);
             return true;
-            // Check results of files with submission ID
-        } else {
-            try {
-                return checkSubmission(autopsyCase);
-            } catch (NotAuthorizedException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Invalid API Key.", ex);
-                removeFromDB();
-            } catch (NotFoundException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Not found.", ex);
-                removeFromDB();
-            } catch (ServerException ex) {
-                LOGGER.log(Level.SEVERE, "Error fetching rescan results: Server Error.", ex);
-                removeFromDB();
-            }
-            // Return true on these exceptions
-            return true;
+        } catch (PolySwarmDbException e) {
+            LOGGER.log(Level.SEVERE, "Error cancelling Pending Submission");
+            return false;
         }
     }
 
@@ -154,7 +157,27 @@ public class PendingSubmission extends PendingTask {
     }
 
     @Override
+    public String getHumanReadableName() {
+        return "Scan";
+    }
+
+    @Override
     public String toString() {
-        return String.format("PendingSubmission(abstractFileID: {0}, submission_uuid:{1})", getAbstractFileId().toString(), getSubmissionId());
+        return String.format("PendingSubmission(abstractFileID: %s, submission_uuid: %s)", getAbstractFileId().toString(), getSubmissionId());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof PendingSubmission) {
+            PendingSubmission otherSubmission = (PendingSubmission) other;
+            return Objects.equals(otherSubmission.abstractFileID, abstractFileID);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.abstractFileID);
     }
 }

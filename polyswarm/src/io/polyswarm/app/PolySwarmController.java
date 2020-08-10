@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.progress.ProgressHandle;
-import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.casemodule.NoCurrentCaseException;
 import org.sleuthkit.datamodel.AbstractFile;
@@ -80,6 +79,8 @@ public class PolySwarmController {
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_MALWARE_FAMILY_DISPLAY = "Malware Family";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME = "POLYSWARM_POLYSCORE_STRING";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DISPLAY = "PolyScore\u2122";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME = "POLYSWARM_POLYSCORE_DESCRIPTION_STRING";
+    public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_DISPLAY = "PolyScore\u2122 Description";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME = "POLYSWARM_TAG";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY = "Tag";
     public static final String POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME = "POLYSWARM_FIRST_SEEN";
@@ -129,6 +130,7 @@ public class PolySwarmController {
         createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_TAG_DISPLAY);
         createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_DISPLAY);
         createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_DISPLAY);
+        createCustomArtifactAttribute(autopsyCase, POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME, BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_DISPLAY);
     }
 
     public static void createCustomArtifactAttribute(Case autopsyCase, String name, TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE valueType, String display) {

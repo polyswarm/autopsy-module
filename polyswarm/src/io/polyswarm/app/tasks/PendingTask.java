@@ -32,9 +32,13 @@ import io.polyswarm.app.apiclient.v2.requests.utils.Assertion;
 import io.polyswarm.app.apiclient.v2.requests.utils.Tag;
 import io.polyswarm.app.datamodel.PolySwarmDbException;
 import io.polyswarm.app.datamodel.PolySwarmDb;
+import io.polyswarm.app.optionspanel.PolySwarmMarketplaceSettings;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
+import org.netbeans.api.progress.ProgressHandle;
+import org.openide.util.Cancellable;
+import org.openide.util.NbBundle;
 import org.sleuthkit.autopsy.casemodule.Case;
 import org.sleuthkit.autopsy.ingest.IngestServices;
 import org.sleuthkit.autopsy.ingest.ModuleDataEvent;
@@ -45,15 +49,26 @@ import org.sleuthkit.datamodel.TskCoreException;
 import org.sleuthkit.datamodel.TskData;
 
 /**
- * PendingTask abstract class with helper functions for updating backingboard.
+ * PendingTask abstract class with helper functions for updating blackboard.
  *
  * All children classes must implement `process(Case autopsyCase)`
  */
-public abstract class PendingTask {
+public abstract class PendingTask implements Cancellable {
 
     private static final Logger LOGGER = Logger.getLogger(PendingTask.class.getName());
+    private static final String POLYSCORE_DESCRIPTION = "PolyScore™ is a single authoritative score, based "
+            + "on a model of present engine detections weighted by past performance, indicating the probability a given "
+            + "file contains malware.";
+    private static final String NOT_FOUND = "Not Found in PolySwarm";
 
     public abstract boolean process(Case autopsyCase) throws PolySwarmDbException, BadRequestException, RateLimitException, IOException, TskCoreException;
+
+    @Override
+    public abstract boolean cancel();
+
+    public String getHumanReadableName() {
+        return "Task";
+    }
 
     public PolySwarmDb getDbInstance() throws PolySwarmDbException {
         return PolySwarmDb.getInstance();
@@ -68,7 +83,7 @@ public abstract class PendingTask {
     public static void updateNotFound(Case autopsyCase, Long abstractFileId) throws TskCoreException {
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, PolySwarmModule.getModuleName(), "Not Found in PolySwarm"));
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_COMMENT, PolySwarmModule.getModuleName(), NOT_FOUND));
     }
 
     /**
@@ -81,6 +96,7 @@ public abstract class PendingTask {
      * @param artifactInstance response from PolySwarm
      */
     public static void updateBlackboard(Case autopsyCase, Long abstractFileId, ArtifactInstance artifactInstance, List<Tag> tags) throws TskCoreException {
+        PolySwarmMarketplaceSettings apiSettings = new PolySwarmMarketplaceSettings();
         AbstractFile abstractFile = autopsyCase.getSleuthkitCase().getAbstractFileById(abstractFileId);
 
         // Set file to known bad when polyscore > 0.7 and at least 2 malicious responses
@@ -90,13 +106,17 @@ public abstract class PendingTask {
 
         // Add all results attributes
         BlackboardArtifact artifact = getBlackboardArtifact(autopsyCase, abstractFile, PolySwarmController.POLYSWARM_ARTIFACT_TYPE_NAME);
-        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
+        if (apiSettings.showPolyScore()) {
+            addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_DESCRIPTION_NAME, POLYSCORE_DESCRIPTION);
+        }
+
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_POLYSCORE_NAME, artifactInstance.polyscore);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
-        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        artifact.addAttribute(new BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_HASH_SHA2_256, PolySwarmModule.getModuleName(), artifactInstance.sha256));
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_FIRST_SEEN_NAME, artifactInstance.firstSeen);
         addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_LAST_SCANNED_NAME, artifactInstance.lastScanned);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_TOTAL_DETECTIONS_NAME, artifactInstance.detection.total);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_MALICIOUS_DETECTIONS_NAME, artifactInstance.detection.malicious);
+        addArtifactAttribute(autopsyCase, artifact, PolySwarmController.POLYSWARM_ARTIFACT_ATTRIBUTE_BENIGN_DETECTIONS_NAME, artifactInstance.detection.benign);
         // notify UI to update and display this result
 
         for (Assertion assertion : artifactInstance.assertions) {
@@ -198,5 +218,10 @@ public abstract class PendingTask {
         }
 
         artifact.addAttribute(new BlackboardAttribute(attributeType, PolySwarmModule.getModuleName(), data));
+    }
+
+    @NbBundle.Messages({"PendingTask.populatingDb.status=Processing %s."})
+    public ProgressHandle getPendingTaskProgressHandle() {
+        return ProgressHandle.createHandle(String.format(io.polyswarm.app.tasks.Bundle.PendingTask_populatingDb_status(), getHumanReadableName()), this);
     }
 }
